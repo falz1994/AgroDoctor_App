@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import '../utils/web_config.dart';
 
 class LocationService {
   // Verificar y solicitar permisos de ubicación
@@ -36,17 +38,50 @@ class LocationService {
 
   // Obtener la posición actual
   static Future<Position?> getCurrentPosition(BuildContext context) async {
-    final hasPermission = await handleLocationPermission(context);
-    
-    if (!hasPermission) return null;
-    
-    try {
-      return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high
-      );
-    } catch (e) {
-      debugPrint(e.toString());
-      return null;
+    // Manejo especial para web
+    if (WebConfig.isWeb) {
+      try {
+        // En web, primero verificamos si el servicio está disponible
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Los servicios de ubicación están desactivados en el navegador.')));
+          return null;
+        }
+        
+        // Solicitar permisos para web
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied) {
+          permission = await Geolocator.requestPermission();
+          if (permission == LocationPermission.denied) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Permisos de ubicación denegados')));
+            return null;
+          }
+        }
+        
+        // Obtener posición en web
+        return await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high
+        );
+      } catch (e) {
+        debugPrint('Error de ubicación en web: ${e.toString()}');
+        return null;
+      }
+    } else {
+      // Comportamiento normal para móviles
+      final hasPermission = await handleLocationPermission(context);
+      
+      if (!hasPermission) return null;
+      
+      try {
+        return await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high
+        );
+      } catch (e) {
+        debugPrint(e.toString());
+        return null;
+      }
     }
   }
 
