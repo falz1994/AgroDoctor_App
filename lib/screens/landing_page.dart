@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../widgets/feature_card.dart';
 import '../widgets/login_modal.dart';
-import 'diagnostico_wizard.dart';
-import 'register_page.dart';
+import '../widgets/diagnostico_list.dart';
+import '../providers/auth_provider.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final isLoggedIn = authProvider.isLoggedIn;
+    final user = authProvider.user;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text("AgroDoctor"),
@@ -28,12 +33,67 @@ class LandingPage extends StatelessWidget {
             onPressed: () {},
             child: const Text("Contacto", style: TextStyle(color: Colors.white)),
           ),
-          TextButton(
-            onPressed: () {
-              _showLoginModal(context);
-            },
-            child: const Text("Iniciar Sesión", style: TextStyle(color: Colors.white)),
-          ),
+          
+          // Botón de inicio de sesión o perfil
+          isLoggedIn
+              ? PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'profile') {
+                      Navigator.pushNamed(context, '/profile');
+                    } else if (value == 'logout') {
+                      // Cerrar sesión de forma síncrona para evitar problemas
+                      _handleLogout(context, authProvider);
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                    PopupMenuItem<String>(
+                      value: 'profile',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person, size: 18),
+                          const SizedBox(width: 8),
+                          Text(user?.displayName ?? 'Mi Perfil'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    const PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, size: 18),
+                          SizedBox(width: 8),
+                          Text('Cerrar Sesión'),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 14,
+                          backgroundImage: user?.photoURL != null
+                              ? NetworkImage(user!.photoURL!)
+                              : null,
+                          backgroundColor: Colors.white,
+                          child: user?.photoURL == null
+                              ? const Icon(Icons.person, size: 16, color: AppColors.primaryColor)
+                              : null,
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_drop_down, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                )
+              : TextButton(
+                  onPressed: () {
+                    _showLoginModal(context);
+                  },
+                  child: const Text("Iniciar Sesión", style: TextStyle(color: Colors.white)),
+                ),
         ],
       ),
       body: SingleChildScrollView(
@@ -147,6 +207,55 @@ class LandingPage extends StatelessWidget {
               ),
             ),
             
+            // Sección de diagnósticos recientes (solo para usuarios autenticados)
+            if (isLoggedIn)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Mis Diagnósticos",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            // Navegar a una página con todos los diagnósticos
+                          },
+                          icon: const Icon(Icons.history),
+                          label: const Text("Ver todos"),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const SizedBox(
+                      height: 400, // Altura fija para el listado
+                      child: Card(
+                        elevation: 2,
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                // Importamos el widget de listado de diagnósticos
+                                DiagnosticoList(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            
             // Sección "Acerca de"
             Container(
               padding: const EdgeInsets.all(20),
@@ -215,5 +324,61 @@ class LandingPage extends StatelessWidget {
         );
       },
     );
+  }
+  
+  // Función para manejar el cierre de sesión
+  Future<void> _handleLogout(BuildContext context, dynamic authProvider) async {
+    try {
+      // Mostrar indicador de carga
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+      
+      // Esperar a que se cierre la sesión
+      await authProvider.signOut();
+      
+      if (context.mounted) {
+        // Cerrar el diálogo de carga
+        Navigator.pop(context);
+        
+        // Mostrar mensaje de confirmación
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Has cerrado sesión'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        
+        // Forzar reconstrucción completa de la app
+        Navigator.pushNamedAndRemoveUntil(
+          context, 
+          '/', 
+          (route) => false
+        );
+        
+        // Recargar después de un breve retraso para asegurar que todo se actualice
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (context.mounted) {
+            Navigator.pushReplacementNamed(context, '/');
+          }
+        });
+      }
+    } catch (e) {
+      // En caso de error, cerrar el diálogo y mostrar mensaje
+      if (context.mounted) {
+        Navigator.pop(context); // Cerrar diálogo de carga
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cerrar sesión: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

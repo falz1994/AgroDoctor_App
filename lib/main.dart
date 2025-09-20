@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'constants/app_theme.dart';
 import 'utils/app_routes.dart';
+import 'services/firebase_options.dart';
+import 'providers/auth_provider.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const AgroDoctorApp());
 }
 
@@ -11,13 +19,18 @@ class AgroDoctorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'AgroDoctor',
-      theme: AppTheme.theme,
-      initialRoute: AppRoutes.home,
-      routes: AppRoutes.routes,
-      onGenerateRoute: AppRoutes.generateRoute,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'AgroDoctor',
+        theme: AppTheme.theme,
+        initialRoute: AppRoutes.home,
+        routes: AppRoutes.routes,
+        onGenerateRoute: AppRoutes.generateRoute,
+      ),
     );
   }
 }

@@ -382,7 +382,14 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
       _isProcessing = false;
     });
     
-    // Mostrar los resultados
-    DiagnosticoService.showDiagnosisResults(context, results);
+    // Mostrar los resultados y guardar el diagnóstico
+    DiagnosticoService.showDiagnosisResults(
+      context, 
+      results,
+      image: _selectedImage,
+      description: _descriptionController.text,
+      location: _currentAddress,
+      cropStage: _selectedCropStage,
+    );
   }
 }
