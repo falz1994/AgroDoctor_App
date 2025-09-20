@@ -14,7 +14,7 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="/">
+  <base href="/AgroDoctor_App/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
@@ -26,7 +26,7 @@
   
   <script>
     // The value below is injected by flutter build, do not change by hand.
-    const serviceWorkerVersion = "4079904654";
+    const serviceWorkerVersion = "996108897";
   </script>
 
   <!-- iOS meta tags & icons -->
@@ -42,30 +42,60 @@
   <link rel="manifest" href="manifest.json">
 
   <!-- Google Maps API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyArlFQ0itUWyheV_hPDgMZtbxHzOPpIZvk&loading=async"></script>
 </head>
 <body>
-  <!-- Flutter.js script -->
-  <script src="flutter.js" defer></script>
+  <!-- Flutter.js script con manejo de errores -->
   <script>
-    window.addEventListener('load', function() {
-      // Definir la variable flutter para evitar el error _flutter is not defined
-      var flutter = window.flutter || {};
-      window.flutter = flutter;
-      
-      // Loads the Flutter engine
-      flutter.loader = flutter.loader || {};
-      flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
+    // Función para cargar el script flutter.js
+    function loadFlutterScript() {
+      const script = document.createElement('script');
+      script.src = 'flutter.js';
+      script.type = 'text/javascript';
+      script.onload = initializeFlutter;
+      script.onerror = handleFlutterScriptError;
+      document.body.appendChild(script);
+    }
+
+    // Función para manejar errores de carga del script flutter.js
+    function handleFlutterScriptError() {
+      console.warn('No se pudo cargar flutter.js. Intentando cargar la aplicación directamente.');
+      // Intentar cargar el script principal directamente
+      const mainScript = document.createElement('script');
+      mainScript.src = 'main.dart.js';
+      mainScript.type = 'application/javascript';
+      document.body.appendChild(mainScript);
+    }
+
+    // Función para inicializar Flutter
+    function initializeFlutter() {
+      window.addEventListener('load', function() {
+        // Definir la variable flutter para evitar el error _flutter is not defined
+        var flutter = window.flutter || {};
+        window.flutter = flutter;
+        
+        // Loads the Flutter engine
+        flutter.loader = flutter.loader || {};
+        try {
+          flutter.loader.loadEntrypoint({
+            serviceWorker: {
+              serviceWorkerVersion: serviceWorkerVersion,
+            },
+            onEntrypointLoaded: function(engineInitializer) {
+              engineInitializer.initializeEngine().then(function(appRunner) {
+                appRunner.runApp();
+              });
+            }
           });
+        } catch (e) {
+          console.error('Error al cargar Flutter:', e);
+          handleFlutterScriptError();
         }
       });
-    });
+    }
+
+    // Iniciar la carga de Flutter
+    window.addEventListener('DOMContentLoaded', loadFlutterScript);
   </script>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -88,7 +118,6 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
   </script>
-  
-  <script src="main.dart.js" type="application/javascript"></script>
+  <!-- El script main.dart.js se cargará dinámicamente -->
 </body>
 </html>
