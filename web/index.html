@@ -49,8 +49,13 @@
   <script src="flutter.js" defer></script>
   <script>
     window.addEventListener('load', function() {
+      // Definir la variable flutter para evitar el error _flutter is not defined
+      var flutter = window.flutter || {};
+      window.flutter = flutter;
+      
       // Loads the Flutter engine
-      _flutter.loader.loadEntrypoint({
+      flutter.loader = flutter.loader || {};
+      flutter.loader.loadEntrypoint({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
         },
