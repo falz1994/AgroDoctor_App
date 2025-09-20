@@ -14,11 +14,20 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <base href="./">
+  <base href="/">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="AgroDoctor - Diagnóstico de cultivos con IA">
+  <!-- Google Sign-In Client ID -->
+  <meta name="google-signin-client_id" content="312606322714-r0q9gvqgvjpv4jgq4qjjvtb0vk5ek5m5.apps.googleusercontent.com">
+  <!-- Asegúrate de que este ID de cliente esté configurado en la consola de Firebase con el origen correcto -->
+  <!-- Orígenes autorizados deben incluir: http://localhost, http://localhost:XXXX y tu dominio de producción -->
+  
+  <script>
+    // The value below is injected by flutter build, do not change by hand.
+    const serviceWorkerVersion = "4079904654";
+  </script>
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -36,15 +45,45 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
 </head>
 <body>
-  <!-- Esta línea es crucial para Flutter Web -->
+  <!-- Flutter.js script -->
+  <script src="flutter.js" defer></script>
   <script>
-    // El siguiente comentario es necesario para Flutter Web
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('flutter-first-frame', function () {
-        navigator.serviceWorker.register('flutter_service_worker.js?v=2787597158');
+    window.addEventListener('load', function() {
+      // Loads the Flutter engine
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            appRunner.runApp();
+          });
+        }
       });
-    }
+    });
   </script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <!-- Initialize Firebase -->
+  <script>
+    // La configuración principal se maneja desde Dart/Flutter
+    // Esta configuración es un respaldo para interoperabilidad con JS
+    const firebaseConfig = {
+      apiKey: "AIzaSyArlFQ0itUWyheV_hPDgMZtbxHzOPpIZvk",
+      authDomain: "agrodoctor-77245.firebaseapp.com",
+      projectId: "agrodoctor-77245",
+      storageBucket: "agrodoctor-77245.firebasestorage.app",
+      messagingSenderId: "312606322714",
+      appId: "1:312606322714:web:cd50cb873240803e68a1a3"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  
   <script src="main.dart.js" type="application/javascript"></script>
 </body>
 </html>
