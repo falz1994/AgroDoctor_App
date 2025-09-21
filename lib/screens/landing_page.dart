@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
-import '../widgets/feature_card.dart';
 import '../widgets/login_modal.dart';
 import '../widgets/diagnostico_list.dart';
+import '../widgets/noticias_page_view.dart';
+import '../widgets/clima_widget.dart';
+import '../models/noticia_model.dart';
 import '../providers/auth_provider.dart';
 
 class LandingPage extends StatelessWidget {
@@ -22,16 +24,28 @@ class LandingPage extends StatelessWidget {
         actions: [
           // Menú en la barra de navegación
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, '/');
+            },
             child: const Text("Inicio", style: TextStyle(color: Colors.white)),
           ),
           TextButton(
-            onPressed: () {},
-            child: const Text("Servicios", style: TextStyle(color: Colors.white)),
+            onPressed: () {
+              Navigator.pushNamed(context, '/reportes');
+            },
+            child: const Text("Reportes", style: TextStyle(color: Colors.white)),
           ),
           TextButton(
-            onPressed: () {},
-            child: const Text("Contacto", style: TextStyle(color: Colors.white)),
+            onPressed: () {
+              Navigator.pushNamed(context, '/diagnostico-results');
+            },
+            child: const Text("Mis Diagnósticos", style: TextStyle(color: Colors.white)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/productos');
+            },
+            child: const Text("Productos", style: TextStyle(color: Colors.white)),
           ),
           
           // Botón de inicio de sesión o perfil
@@ -52,7 +66,7 @@ class LandingPage extends StatelessWidget {
                         children: [
                           const Icon(Icons.person, size: 18),
                           const SizedBox(width: 8),
-                          Text(user?.displayName ?? 'Mi Perfil'),
+                          const Text('Mi Perfil'),
                         ],
                       ),
                     ),
@@ -83,6 +97,15 @@ class LandingPage extends StatelessWidget {
                               : null,
                         ),
                         const SizedBox(width: 8),
+                        if (user?.displayName != null)
+                          Text(
+                            user!.displayName!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        const SizedBox(width: 4),
                         const Icon(Icons.arrow_drop_down, color: Colors.white),
                       ],
                     ),
@@ -102,7 +125,7 @@ class LandingPage extends StatelessWidget {
           children: [
             // Banner principal
             Container(
-              height: 300,
+              height: 350, // Increased height to prevent overflow
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [AppColors.primaryColor, AppColors.secondaryColor],
@@ -110,65 +133,94 @@ class LandingPage extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      "assets/logo.jpg",
-                      height: 120,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "AgroDoctor",
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Tu aliado en el diagnóstico y cuidado de cultivos",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        // Navegar al wizard de diagnóstico
-                        Navigator.pushNamed(context, '/diagnostico');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppColors.primaryColor,
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Image.asset(
+                          "assets/logo.png",
+                          height: 90,
                         ),
                       ),
-                      child: const Text(
-                        "Comenzar Ahora",
-                        style: TextStyle(
-                          fontSize: 16,
+                      const SizedBox(height: 25),
+                      ElevatedButton(
+                        onPressed: () {
+                          // Navegar al wizard de diagnóstico
+                          Navigator.pushNamed(context, '/diagnostico');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.primaryColor,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text(
+                          "Realizar Diagnóstico Ahora",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
             
-            // Sección de características
+            // Sección de noticias del IPSA
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Últimas Noticias del IPSA",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          // Navegar a una página con todas las noticias
+                        },
+                        icon: const Icon(Icons.newspaper),
+                        label: const Text("Ver más"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  NoticiasPageView(noticias: NoticiasData.getNoticias()),
+                ],
+              ),
+            ),
+            
+            // Sección de pronóstico del clima
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Nuestros Servicios",
+                    "Pronóstico del Clima - Managua",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -176,32 +228,148 @@ class LandingPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
+                  ClimaWidget(pronostico: PronosticoClima.getPronosticoManagua()),
+                ],
+              ),
+            ),
+            
+            // Sección de reportes agrícolas
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Reportes Agrícolas",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/reportes');
+                        },
+                        icon: const Icon(Icons.bar_chart),
+                        label: const Text("Ver todos"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // Tarjetas de reportes
                   Row(
                     children: [
                       Expanded(
-                        child: FeatureCard(
-                          title: "Diagnóstico de Cultivos",
-                          description: "Identifica enfermedades y plagas en tus cultivos con inteligencia artificial",
-                          icon: Icons.eco,
+                        child: _buildReporteCard(
+                          "Producción de Frijol",
+                          "Ver datos de producción por departamento",
+                          Icons.agriculture,
+                          () {
+                            Navigator.pushNamed(context, '/reportes');
+                          },
                         ),
                       ),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 15),
                       Expanded(
-                        child: FeatureCard(
-                          title: "Recomendaciones",
-                          description: "Recibe recomendaciones personalizadas para el tratamiento de tus cultivos",
-                          icon: Icons.lightbulb,
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: FeatureCard(
-                          title: "Seguimiento",
-                          description: "Realiza un seguimiento del progreso y salud de tus cultivos",
-                          icon: Icons.trending_up,
+                        child: _buildReporteCard(
+                          "Precios del Mercado",
+                          "Consultar precios actualizados del frijol",
+                          Icons.attach_money,
+                          () {
+                            Navigator.pushNamed(context, '/reportes');
+                          },
                         ),
                       ),
                     ],
+                  ),
+                ],
+              ),
+            ),
+            
+            // Sección de productos destacados
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Productos Destacados",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/productos');
+                        },
+                        icon: const Icon(Icons.shopping_bag),
+                        label: const Text("Ver todos"),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // Lista horizontal de productos
+                  SizedBox(
+                    height: 220,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        _buildProductoCard(
+                          "Insecticida Orgánico",
+                          "350.00",
+                          "Protección natural para cultivos de frijol",
+                          Icons.pest_control,
+                          15,
+                          () {
+                            Navigator.pushNamed(context, '/productos');
+                          },
+                        ),
+                        const SizedBox(width: 15),
+                        _buildProductoCard(
+                          "Fertilizante Premium",
+                          "480.00",
+                          "Especial para leguminosas",
+                          Icons.eco,
+                          10,
+                          () {
+                            Navigator.pushNamed(context, '/productos');
+                          },
+                        ),
+                        const SizedBox(width: 15),
+                        _buildProductoCard(
+                          "Semillas Certificadas",
+                          "220.00",
+                          "Frijol INTA Rojo de alta calidad",
+                          Icons.grass,
+                          0,
+                          () {
+                            Navigator.pushNamed(context, '/productos');
+                          },
+                        ),
+                        const SizedBox(width: 15),
+                        _buildProductoCard(
+                          "Kit de Herramientas",
+                          "850.00",
+                          "Todo lo necesario para la cosecha",
+                          Icons.handyman,
+                          5,
+                          () {
+                            Navigator.pushNamed(context, '/productos');
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -227,7 +395,7 @@ class LandingPage extends StatelessWidget {
                         ),
                         TextButton.icon(
                           onPressed: () {
-                            // Navegar a una página con todos los diagnósticos
+                            Navigator.pushNamed(context, '/diagnostico-results');
                           },
                           icon: const Icon(Icons.history),
                           label: const Text("Ver todos"),
@@ -256,32 +424,6 @@ class LandingPage extends StatelessWidget {
                 ),
               ),
             
-            // Sección "Acerca de"
-            Container(
-              padding: const EdgeInsets.all(20),
-              color: Colors.grey[100],
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Acerca de AgroDoctor",
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "AgroDoctor es una aplicación diseñada para ayudar a agricultores y aficionados a la jardinería a diagnosticar y tratar problemas en sus cultivos. Utilizando tecnología de inteligencia artificial, podemos identificar enfermedades, plagas y deficiencias nutricionales para proporcionar soluciones efectivas y personalizadas.",
-                    style: TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             
             // Footer
             Container(
@@ -326,6 +468,167 @@ class LandingPage extends StatelessWidget {
     );
   }
   
+  // Construir tarjeta de producto
+  Widget _buildProductoCard(String nombre, String precio, String descripcion, IconData icono, int descuento, VoidCallback onTap) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: 160,
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Icono y badge de descuento
+              Stack(
+                children: [
+                  Container(
+                    height: 80,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      icono,
+                      size: 40,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  if (descuento > 0)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(8),
+                            bottomLeft: Radius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          '-$descuento%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              
+              // Nombre del producto
+              Text(
+                nombre,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              
+              // Precio
+              Text(
+                'C\$ $precio',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: descuento > 0 ? Colors.red : AppColors.secondaryColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              
+              // Descripción
+              Text(
+                descripcion,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Construir tarjeta de reporte
+  Widget _buildReporteCard(String titulo, String descripcion, IconData icono, VoidCallback onTap) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                icono,
+                size: 40,
+                color: AppColors.primaryColor,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                titulo,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                descripcion,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    "Ver detalles",
+                    style: TextStyle(
+                      color: AppColors.secondaryColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_forward,
+                    size: 16,
+                    color: AppColors.secondaryColor,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // Función para manejar el cierre de sesión
   Future<void> _handleLogout(BuildContext context, dynamic authProvider) async {
     try {
@@ -382,3 +685,4 @@ class LandingPage extends StatelessWidget {
     }
   }
 }
+

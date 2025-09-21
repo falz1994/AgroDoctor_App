@@ -38,7 +38,7 @@ class _LoginModalState extends State<LoginModal> {
           children: [
             // Logo
             Image.asset(
-              "assets/logo.jpg",
+              "assets/logo.png",
               height: 100,
             ),
             const SizedBox(height: 10),

@@ -120,8 +120,60 @@ class DiagnosticoService {
     };
   }
   
-  // Método para mostrar los resultados del diagnóstico
-  static void showDiagnosisResults(
+  // Método para guardar el diagnóstico en segundo plano sin bloquear la UI
+  static Future<void> saveDiagnosisInBackground(
+    BuildContext context,
+    Map<String, dynamic> results, {
+    File? image,
+    String? description,
+    String? location,
+    String? cropStage,
+  }) async {
+    try {
+      // Guardar el diagnóstico en Firestore solo si el usuario está autenticado
+      if (_auth.currentUser != null) {
+        debugPrint('Guardando diagnóstico en segundo plano...');
+        
+        final diagnosisId = await saveDiagnosis(
+          image: image,
+          description: description,
+          location: location,
+          cropStage: cropStage,
+          results: results,
+        );
+        
+        // Mostrar mensaje solo si se guardó correctamente y el contexto sigue siendo válido
+        if (diagnosisId != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Diagnóstico guardado en tu historial'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          debugPrint('Diagnóstico guardado con ID: $diagnosisId');
+        }
+      } else {
+        debugPrint('Usuario no autenticado, no se guardó el diagnóstico');
+        // Mostrar mensaje para iniciar sesión si el contexto sigue siendo válido
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Inicia sesión para guardar tus diagnósticos'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error al guardar diagnóstico en segundo plano: $e');
+      // No mostrar error al usuario para no interrumpir la experiencia
+    }
+  }
+  
+  // Método para mostrar los resultados del diagnóstico (mantenido por compatibilidad)
+  static Future<void> showDiagnosisResults(
     BuildContext context, 
     Map<String, dynamic> results, {
     File? image,
@@ -129,75 +181,40 @@ class DiagnosticoService {
     String? location,
     String? cropStage,
   }) async {
-    // Guardar el diagnóstico en Firestore
-    String? diagnosisId;
-    
-    if (_auth.currentUser != null) {
-      diagnosisId = await saveDiagnosis(
-        image: image,
-        description: description,
-        location: location,
-        cropStage: cropStage,
-        results: results,
-      );
+    try {
+      debugPrint('Método showDiagnosisResults llamado - redirigiendo a saveDiagnosisInBackground');
+      
+      // Navegar directamente a la página de resultados
+      if (context.mounted) {
+        await Navigator.of(context).pushReplacementNamed(
+          '/diagnostico-results',
+          arguments: {
+            'resultados': results,
+            'diagnostico': null,
+          },
+        );
+        
+        // Guardar en segundo plano después de la navegación
+        saveDiagnosisInBackground(
+          context,
+          results,
+          image: image,
+          description: description,
+          location: location,
+          cropStage: cropStage,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error en showDiagnosisResults: $e');
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al procesar el diagnóstico: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Resultado del Diagnóstico"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Enfermedad detectada: ${results['disease']}",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "Nivel de confianza: ${results['confidence']}%",
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Recomendaciones:",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 5),
-            ...List.generate(
-              results['recommendations'].length,
-              (index) => Text("• ${results['recommendations'][index]}"),
-            ),
-            const SizedBox(height: 10),
-            if (_auth.currentUser == null)
-              const Text(
-                "Inicia sesión para guardar este diagnóstico",
-                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-              ),
-            if (diagnosisId != null)
-              const Text(
-                "Este diagnóstico ha sido guardado en tu historial",
-                style: TextStyle(color: Colors.green),
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop(); // Volver a la página principal
-            },
-            child: const Text("Aceptar"),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text("Ver más detalles"),
-          ),
-        ],
-      ),
-    );
   }
 }

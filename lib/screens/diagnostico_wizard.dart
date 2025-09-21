@@ -52,12 +52,15 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
         type: StepperType.vertical,
         currentStep: _currentStep,
         onStepTapped: (step) => setState(() => _currentStep = step),
-        onStepContinue: () {
+        onStepContinue: () async {
+          debugPrint('onStepContinue llamado, paso actual: $_currentStep');
           if (_currentStep < 2) {
             setState(() => _currentStep += 1);
           } else {
+            debugPrint('Último paso, procesando diagnóstico...');
             // Enviar diagnóstico
-            _processDiagnosis();
+            await _processDiagnosis();
+            debugPrint('Diagnóstico procesado');
           }
         },
         onStepCancel: () {
@@ -272,7 +275,16 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
             child: Row(
               children: [
                 ElevatedButton(
-                  onPressed: details.onStepContinue,
+                  onPressed: () {
+                    if (_currentStep < 2) {
+                      // Si no es el último paso, usar el comportamiento normal
+                      details.onStepContinue?.call();
+                    } else {
+                      // Si es el último paso, procesar el diagnóstico directamente
+                      debugPrint('Botón Finalizar presionado, procesando diagnóstico...');
+                      _processDiagnosis();
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
                     foregroundColor: Colors.white,
@@ -361,35 +373,78 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
     );
   }
 
-  void _processDiagnosis() async {
+  Future<void> _processDiagnosis() async {
+    debugPrint('Iniciando procesamiento del diagnóstico');
+    
     // Activar la animación
     setState(() {
       _isProcessing = true;
     });
     _animationController.repeat();
     
-    // Procesar el diagnóstico usando el servicio
-    final results = await DiagnosticoService.processDiagnosis(
-      image: _selectedImage,
-      description: _descriptionController.text,
-      location: _currentAddress,
-      cropStage: _selectedCropStage,
-    );
-    
-    // Detener la animación
-    _animationController.stop();
-    setState(() {
-      _isProcessing = false;
-    });
-    
-    // Mostrar los resultados y guardar el diagnóstico
-    DiagnosticoService.showDiagnosisResults(
-      context, 
-      results,
-      image: _selectedImage,
-      description: _descriptionController.text,
-      location: _currentAddress,
-      cropStage: _selectedCropStage,
-    );
+    try {
+      debugPrint('Obteniendo resultados del diagnóstico...');
+      
+      // Procesar el diagnóstico usando el servicio
+      final results = await DiagnosticoService.processDiagnosis(
+        image: _selectedImage,
+        description: _descriptionController.text,
+        location: _currentAddress,
+        cropStage: _selectedCropStage,
+      );
+      
+      debugPrint('Resultados obtenidos: ${results['disease']}');
+      
+      // Detener la animación
+      _animationController.stop();
+      setState(() {
+        _isProcessing = false;
+      });
+      
+      // Asegurarse de que el contexto sigue siendo válido
+      if (!mounted) {
+        debugPrint('Contexto no válido después de procesar');
+        return;
+      }
+      
+      debugPrint('Navegando a la página de resultados...');
+      
+      // Navegar directamente a la página de resultados
+      Navigator.of(context).pushReplacementNamed(
+        '/diagnostico-results',
+        arguments: {
+          'resultados': results,
+          'diagnostico': null,
+        },
+      );
+      
+      // Guardar el diagnóstico en segundo plano
+      DiagnosticoService.saveDiagnosisInBackground(
+        context,
+        results,
+        image: _selectedImage,
+        description: _descriptionController.text,
+        location: _currentAddress,
+        cropStage: _selectedCropStage,
+      );
+      
+    } catch (e) {
+      debugPrint('Error en _processDiagnosis: $e');
+      
+      // En caso de error, detener la animación y mostrar mensaje
+      _animationController.stop();
+      setState(() {
+        _isProcessing = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al procesar el diagnóstico: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
