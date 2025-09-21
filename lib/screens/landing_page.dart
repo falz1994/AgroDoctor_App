@@ -17,36 +17,42 @@ class LandingPage extends StatelessWidget {
     final isLoggedIn = authProvider.isLoggedIn;
     final user = authProvider.user;
     
+    // Use MediaQuery to determine screen size
+    final isSmallScreen = MediaQuery.of(context).size.width < 800;
+    
     return Scaffold(
+      drawer: isSmallScreen ? _buildDrawer(context, isLoggedIn, user) : null,
       appBar: AppBar(
         title: const Text("AgroDoctor"),
         backgroundColor: AppColors.primaryColor,
         actions: [
-          // Menú en la barra de navegación
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/');
-            },
-            child: const Text("Inicio", style: TextStyle(color: Colors.white)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/reportes');
-            },
-            child: const Text("Reportes", style: TextStyle(color: Colors.white)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/diagnostico-results');
-            },
-            child: const Text("Mis Diagnósticos", style: TextStyle(color: Colors.white)),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/productos');
-            },
-            child: const Text("Productos", style: TextStyle(color: Colors.white)),
-          ),
+          // En pantallas grandes, mostrar menú horizontal
+          if (!isSmallScreen) ...[
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/');
+              },
+              child: const Text("Inicio", style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/reportes');
+              },
+              child: const Text("Reportes", style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/diagnostico-results');
+              },
+              child: const Text("Mis Diagnósticos", style: TextStyle(color: Colors.white)),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/productos');
+              },
+              child: const Text("Productos", style: TextStyle(color: Colors.white)),
+            ),
+          ],
           
           // Botón de inicio de sesión o perfil
           isLoggedIn
@@ -142,16 +148,9 @@ class LandingPage extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Image.asset(
-                          "assets/logo.png",
-                          height: 90,
-                        ),
+                      Image.asset(
+                        "assets/logo.png",
+                        height: 90,
                       ),
                       const SizedBox(height: 25),
                       ElevatedButton(
@@ -683,6 +682,135 @@ class LandingPage extends StatelessWidget {
         );
       }
     }
+  }
+  
+  // Construir el drawer para pantallas pequeñas
+  Widget _buildDrawer(BuildContext context, bool isLoggedIn, dynamic user) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: AppColors.primaryColor,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Image.asset(
+                      "assets/logo.png",
+                      height: 40,
+                    ),
+                    const SizedBox(width: 10),
+                    const Text(
+                      "AgroDoctor",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 15),
+                if (isLoggedIn && user != null) ...[
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundImage: user.photoURL != null
+                            ? NetworkImage(user.photoURL)
+                            : null,
+                        backgroundColor: Colors.white,
+                        child: user.photoURL == null
+                            ? const Icon(Icons.person, size: 18, color: AppColors.primaryColor)
+                            : null,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          user.displayName ?? "Usuario",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Cerrar drawer
+                      _showLoginModal(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: AppColors.primaryColor,
+                    ),
+                    child: const Text("Iniciar Sesión"),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.home),
+            title: const Text('Inicio'),
+            onTap: () {
+              Navigator.pop(context); // Cerrar drawer
+              Navigator.pushNamed(context, '/');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.bar_chart),
+            title: const Text('Reportes'),
+            onTap: () {
+              Navigator.pop(context); // Cerrar drawer
+              Navigator.pushNamed(context, '/reportes');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.history),
+            title: const Text('Mis Diagnósticos'),
+            onTap: () {
+              Navigator.pop(context); // Cerrar drawer
+              Navigator.pushNamed(context, '/diagnostico-results');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.shopping_bag),
+            title: const Text('Productos'),
+            onTap: () {
+              Navigator.pop(context); // Cerrar drawer
+              Navigator.pushNamed(context, '/productos');
+            },
+          ),
+          if (isLoggedIn) ...[
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: const Text('Mi Perfil'),
+              onTap: () {
+                Navigator.pop(context); // Cerrar drawer
+                Navigator.pushNamed(context, '/profile');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Cerrar Sesión'),
+              onTap: () {
+                Navigator.pop(context); // Cerrar drawer
+                _handleLogout(context, Provider.of<AuthProvider>(context, listen: false));
+              },
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
