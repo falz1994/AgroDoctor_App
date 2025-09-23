@@ -72,9 +72,9 @@ class _ProductosPageState extends State<ProductosPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               children: [
-                // Filtro de destacados
+                // Filtro de ofertas
                 FilterChip(
-                  label: const Text('Destacados'),
+                  label: const Text('Ofertas'),
                   selected: _mostrarDestacados,
                   onSelected: (selected) {
                     setState(() {
@@ -84,9 +84,13 @@ class _ProductosPageState extends State<ProductosPage> {
                       }
                     });
                   },
-                  backgroundColor: Colors.grey[200],
-                  selectedColor: AppColors.secondaryColor.withOpacity(0.2),
-                  checkmarkColor: AppColors.secondaryColor,
+                  backgroundColor: AppColors.primaryColor.withOpacity(0.08),
+                  selectedColor: AppColors.primaryColor.withOpacity(0.25),
+                  checkmarkColor: AppColors.primaryColor,
+                  labelStyle: const TextStyle(
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 
@@ -226,81 +230,83 @@ class _ProductosPageState extends State<ProductosPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Imagen y badge de descuento
-            Stack(
-              children: [
-                // Imagen
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                  child: AspectRatio(
-                    aspectRatio: 1.0,
-                    child: producto.imagenUrl != null
-                        ? Image.network(
-                            producto.imagenUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[300],
-                                child: const Icon(
-                                  Icons.image_not_supported,
-                                  size: 40,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            },
-                          )
-                        : Container(
-                            color: Colors.grey[300],
-                            child: Icon(
-                              _getCategoryIcon(producto.categoria),
-                              size: 40,
-                              color: Colors.grey,
+            Flexible(
+              child: Stack(
+                children: [
+                  // Imagen
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    child: AspectRatio(
+                      aspectRatio: 1.0,
+                      child: producto.imagenUrl != null
+                          ? Image.network(
+                              producto.imagenUrl!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(
+                                    Icons.image_not_supported,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                            )
+                          : Container(
+                              color: Colors.grey[300],
+                              child: Icon(
+                                _getCategoryIcon(producto.categoria),
+                                size: 40,
+                                color: Colors.grey,
+                              ),
                             ),
-                          ),
+                    ),
                   ),
-                ),
-                
-                // Badge de descuento
-                if (producto.descuento != null && producto.descuento! > 0)
+                  
+                  // Badge de descuento
+                  if (producto.descuento != null && producto.descuento! > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '-${producto.descuento!.toStringAsFixed(0)}%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                  // Badge de categoría
                   Positioned(
                     top: 8,
-                    right: 8,
+                    left: 8,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: Colors.black.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        '-${producto.descuento!.toStringAsFixed(0)}%',
+                        producto.categoriaNombre,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                          fontSize: 10,
                         ),
                       ),
                     ),
                   ),
-                  
-                // Badge de categoría
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      producto.categoriaNombre,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
             
             // Información del producto
@@ -341,7 +347,7 @@ class _ProductosPageState extends State<ProductosPage> {
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           color: producto.descuento != null && producto.descuento! > 0
-                              ? Colors.red
+                              ? AppColors.primaryColor
                               : Colors.black,
                         ),
                       ),

@@ -637,6 +637,31 @@ class LandingPage extends StatelessWidget {
 
   // Función para manejar el cierre de sesión
   Future<void> _handleLogout(BuildContext context, dynamic authProvider) async {
+    // Mostrar diálogo de confirmación
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar cierre de sesión'),
+        content: const Text('¿Estás seguro que quieres cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cerrar sesión'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
     try {
       // Mostrar indicador de carga
       showDialog(
@@ -646,14 +671,14 @@ class LandingPage extends StatelessWidget {
           child: CircularProgressIndicator(),
         ),
       );
-      
+
       // Esperar a que se cierre la sesión
       await authProvider.signOut();
-      
+
       if (context.mounted) {
         // Cerrar el diálogo de carga
         Navigator.pop(context);
-        
+
         // Mostrar mensaje de confirmación
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -662,14 +687,14 @@ class LandingPage extends StatelessWidget {
             duration: Duration(seconds: 3),
           ),
         );
-        
+
         // Forzar reconstrucción completa de la app
         Navigator.pushNamedAndRemoveUntil(
-          context, 
-          '/', 
+          context,
+          '/',
           (route) => false
         );
-        
+
         // Recargar después de un breve retraso para asegurar que todo se actualice
         Future.delayed(const Duration(milliseconds: 300), () {
           if (context.mounted) {
@@ -701,70 +726,60 @@ class LandingPage extends StatelessWidget {
             decoration: const BoxDecoration(
               color: AppColors.primaryColor,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Image.asset(
-                      "assets/logo.png",
-                      height: 40,
+            child: Container(
+              height: 120,
+              alignment: Alignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    "assets/logo.png",
+                    height: 36,
+                  ),
+                  const SizedBox(height: 8),
+                  if (isLoggedIn && user != null) ...[
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundImage: user.photoURL != null
+                          ? NetworkImage(user.photoURL)
+                          : null,
+                      backgroundColor: Colors.white,
+                      child: user.photoURL == null
+                          ? const Icon(Icons.person, size: 22, color: AppColors.primaryColor)
+                          : null,
                     ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      "AgroDoctor",
-                      style: TextStyle(
+                    const SizedBox(height: 6),
+                    Text(
+                      user.displayName ?? "Usuario",
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ] else ...[
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Cerrar drawer
+                        _showLoginModal(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: AppColors.primaryColor,
+                      ),
+                      child: const Text("Iniciar Sesión"),
                     ),
                   ],
-                ),
-                const SizedBox(height: 15),
-                if (isLoggedIn && user != null) ...[
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 16,
-                        backgroundImage: user.photoURL != null
-                            ? NetworkImage(user.photoURL)
-                            : null,
-                        backgroundColor: Colors.white,
-                        child: user.photoURL == null
-                            ? const Icon(Icons.person, size: 18, color: AppColors.primaryColor)
-                            : null,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          user.displayName ?? "Usuario",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ] else ...[
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Cerrar drawer
-                      _showLoginModal(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppColors.primaryColor,
-                    ),
-                    child: const Text("Iniciar Sesión"),
-                  ),
                 ],
-              ],
+              ),
             ),
           ),
+          const SizedBox(height: 8),
           ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
             leading: const Icon(Icons.home),
             title: const Text('Inicio'),
             onTap: () {
@@ -772,7 +787,9 @@ class LandingPage extends StatelessWidget {
               Navigator.pushNamed(context, '/');
             },
           ),
+          const SizedBox(height: 4),
           ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
             leading: const Icon(Icons.bar_chart),
             title: const Text('Reportes'),
             onTap: () {
@@ -780,7 +797,9 @@ class LandingPage extends StatelessWidget {
               Navigator.pushNamed(context, '/reportes');
             },
           ),
+          const SizedBox(height: 4),
           ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
             leading: const Icon(Icons.history),
             title: const Text('Mis Diagnósticos'),
             onTap: () {
@@ -788,7 +807,9 @@ class LandingPage extends StatelessWidget {
               Navigator.pushNamed(context, '/diagnostico-results');
             },
           ),
+          const SizedBox(height: 4),
           ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
             leading: const Icon(Icons.shopping_bag),
             title: const Text('Productos'),
             onTap: () {
@@ -797,8 +818,9 @@ class LandingPage extends StatelessWidget {
             },
           ),
           if (isLoggedIn) ...[
-            const Divider(),
+            const SizedBox(height: 2),
             ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
               leading: const Icon(Icons.person),
               title: const Text('Mi Perfil'),
               onTap: () {
@@ -806,7 +828,9 @@ class LandingPage extends StatelessWidget {
                 Navigator.pushNamed(context, '/profile');
               },
             ),
+            const SizedBox(height: 2),
             ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
               leading: const Icon(Icons.logout),
               title: const Text('Cerrar Sesión'),
               onTap: () {
