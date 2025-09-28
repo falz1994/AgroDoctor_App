@@ -43,29 +43,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-# Archivos grandes de Flutter web que causan problemas con Git
-docs/canvaskit/canvaskit.wasm
-docs/canvaskit/chromium/canvaskit.wasm
-docs/canvaskit/skwasm_heavy.wasm
-docs/main.dart.js
-docs/canvaskit/skwasm.wasm
-docs/assets/NOTICES
-docs/canvaskit/skwasm_heavy.js.symbols
-docs/canvaskit/skwasm.js.symbols
-docs/canvaskit/canvaskit.js.symbols
-docs/canvaskit/chromium/canvaskit.js.symbols
-
-# Archivos grandes en .dart_tool
-.dart_tool/flutter_build/**/*.dill
-.dart_tool/flutter_build/**/*.js
-
-# Archivos de caché de Android
-android/.gradle/**/*.bin
-
-# Archivos de Git que no se deben incluir en el control de versiones
-.git/objects/**/*
-.git/lfs/objects/**/*
-
-# Archivos de modelos de IA (muy grandes)
-/ia-model/*.h5
