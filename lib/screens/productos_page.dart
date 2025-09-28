@@ -128,17 +128,60 @@ class _ProductosPageState extends State<ProductosPage> {
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   )
-                : GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.75,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: productos.length,
-                    itemBuilder: (context, index) {
-                      return _buildProductoCard(productos[index]);
+                : LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Determinar número de columnas según el ancho disponible
+                      int crossAxisCount;
+                      double childAspectRatio;
+                      
+                      if (constraints.maxWidth > 1400) {
+                        // Pantalla muy grande (escritorio grande)
+                        crossAxisCount = 5;
+                        childAspectRatio = 0.85;
+                      } else if (constraints.maxWidth > 1200) {
+                        // Pantalla grande (escritorio)
+                        crossAxisCount = 4;
+                        childAspectRatio = 0.85;
+                      } else if (constraints.maxWidth > 900) {
+                        // Pantalla mediana-grande (escritorio)
+                        crossAxisCount = 4;
+                        childAspectRatio = 0.85;
+                      } else if (constraints.maxWidth > 600) {
+                        // Pantalla mediana (tablet)
+                        crossAxisCount = 3;
+                        childAspectRatio = 0.8;
+                      } else {
+                        // Pantalla pequeña (móvil)
+                        crossAxisCount = 2;
+                        childAspectRatio = 0.75;
+                      }
+                      
+                      // Widget para limitar el ancho máximo en pantallas grandes
+                      Widget gridWidget = GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio: childAspectRatio,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: productos.length,
+                        itemBuilder: (context, index) {
+                          return _buildProductoCard(productos[index]);
+                        },
+                      );
+                      
+                      // Si la pantalla es muy grande, centrar el contenido con ancho máximo
+                      if (constraints.maxWidth > 1400) {
+                        return Center(
+                          child: Container(
+                            constraints: const BoxConstraints(maxWidth: 1400),
+                            child: gridWidget,
+                          ),
+                        );
+                      }
+                      
+                      return gridWidget;
                     },
                   ),
           ),
@@ -218,14 +261,15 @@ class _ProductosPageState extends State<ProductosPage> {
   Widget _buildProductoCard(ProductoModel producto) {
     return Card(
       elevation: 3,
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: InkWell(
         onTap: () {
           _mostrarDetallesProducto(producto);
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -235,7 +279,7 @@ class _ProductosPageState extends State<ProductosPage> {
                 children: [
                   // Imagen
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
                     child: AspectRatio(
                       aspectRatio: 1.0,
                       child: producto.imagenUrl != null
@@ -267,13 +311,13 @@ class _ProductosPageState extends State<ProductosPage> {
                   // Badge de descuento
                   if (producto.descuento != null && producto.descuento! > 0)
                     Positioned(
-                      top: 8,
-                      right: 8,
+                      top: 6,
+                      right: 6,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: AppColors.primaryColor,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
                           '-${producto.descuento!.toStringAsFixed(0)}%',
@@ -288,19 +332,19 @@ class _ProductosPageState extends State<ProductosPage> {
                     
                   // Badge de categoría
                   Positioned(
-                    top: 8,
-                    left: 8,
+                    top: 6,
+                    left: 6,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         producto.categoriaNombre,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                     ),
