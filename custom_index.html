@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/AgroDoctor_App/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="AgroDoctor - Diagnóstico de cultivos con IA">
+  <meta name="google-signin-client_id" content="312606322714-r0q9gvqgvjpv4jgq4qjjvtb0vk5ek5m5.apps.googleusercontent.com">
+  
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="AgroDoctor">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>AgroDoctor</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Google Maps API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyArlFQ0itUWyheV_hPDgMZtbxHzOPpIZvk&loading=async"></script>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <!-- Initialize Firebase -->
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyArlFQ0itUWyheV_hPDgMZtbxHzOPpIZvk",
+      authDomain: "agrodoctor-77245.firebaseapp.com",
+      projectId: "agrodoctor-77245",
+      storageBucket: "agrodoctor-77245.firebasestorage.app",
+      messagingSenderId: "312606322714",
+      appId: "1:312606322714:web:cd50cb873240803e68a1a3"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
+</head>
+<body>
+  <!-- This script installs service_worker.js to provide PWA functionality -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('flutter_service_worker.js');
+      });
+    }
+  </script>
+  
+  <!-- Load main.dart.js directly -->
+  <script src="main.dart.js" type="application/javascript"></script>
+</body>
+</html>

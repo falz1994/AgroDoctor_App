@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Mapas Interactivos</title>
+    <!-- D3.js para mapas interactivos -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+                 .generator-container {
+             max-width: 1200px;
+             margin: 0 auto;
+             display: flex;
+             flex-direction: column;
+             gap: 30px;
+         }
+
+        .form-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-panel h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .country-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .country-input {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .country-input label {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .country-input input {
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .map-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .map-panel h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: slide 20s linear infinite;
+        }
+
+        @keyframes slide {
+            0% { transform: translateX(-50px) translateY(-50px); }
+            100% { transform: translateX(0px) translateY(0px); }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            white-space: pre-line;
+        }
+
+                 .header p {
+             font-size: 1.5rem;
+             opacity: 0.9;
+             position: relative;
+             z-index: 1;
+             white-space: pre-line;
+         }
+
+        .trend-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .map-container {
+            margin-bottom: 0;
+        }
+
+        .map-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #mapContainer {
+            width: 800px;
+            height: 500px;
+            background: #e3f2fd;
+            border-radius: 15px;
+            overflow: visible;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .country-label {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #2c3e50;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 21px;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .source {
+            background: rgba(52, 73, 94, 0.9);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+            font-style: italic;
+            font-size: 1.2rem;
+        }
+
+        .map-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 1000;
+        }
+
+                 @media (max-width: 768px) {
+             .header h1 {
+                 font-size: 2rem;
+             }
+
+             .map-wrapper {
+                 flex-direction: column;
+             }
+         }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .map-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="generator-container">
+        <!-- Panel de formulario -->
+        <div class="form-panel">
+            <h2>⚙️ Configuración del Mapa</h2>
+            
+            <form id="mapForm">
+                <div class="form-group">
+                    <label for="title">Título:</label>
+                    <textarea id="title" placeholder="Ingresa el título del mapa&#10;Puedes usar saltos de línea con Enter">Tasa de Homicidios en Centroamérica</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="subtitle">Subtítulo:</label>
+                    <textarea id="subtitle" placeholder="Ingresa el subtítulo&#10;Puedes usar saltos de línea con Enter">Por cada 100,000 habitantes • 2024</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="icon">Icono:</label>
+                    <input type="text" id="icon" placeholder="🔴" value="🔴">
+                </div>
+
+                <div class="form-group">
+                    <label for="colorDirection">Dirección del código de colores:</label>
+                    <select id="colorDirection">
+                        <option value="ascending">Menor a Mayor (Verde a Rojo)</option>
+                        <option value="descending">Mayor a Menor (Rojo a Verde)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Valores por país:</label>
+                    <div class="country-inputs">
+                        <div class="country-input">
+                            <label>El Salvador 🇸🇻</label>
+                            <input type="number" id="elSalvador" step="0.1" value="1.9">
+                        </div>
+                        <div class="country-input">
+                            <label>Costa Rica 🇨🇷</label>
+                            <input type="number" id="costaRica" step="0.1" value="16.6">
+                        </div>
+                        <div class="country-input">
+                            <label>Panamá 🇵🇦</label>
+                            <input type="number" id="panama" step="0.1" value="12.9">
+                        </div>
+                        <div class="country-input">
+                            <label>Nicaragua 🇳🇮</label>
+                            <input type="number" id="nicaragua" step="0.1" value="6">
+                        </div>
+                        <div class="country-input">
+                            <label>Honduras 🇭🇳</label>
+                            <input type="number" id="honduras" step="0.1" value="26.8">
+                        </div>
+                        <div class="country-input">
+                            <label>Guatemala 🇬🇹</label>
+                            <input type="number" id="guatemala" step="0.1" value="16.1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="source">Fuente:</label>
+                    <input type="text" id="source" placeholder="🗺️ Fuente: Datos de seguridad pública, 2024" value="🗺️ Fuente: Datos de seguridad pública, 2024">
+                </div>
+
+                <button type="button" class="generate-btn" onclick="generateMap()">🚀 Generar Mapa</button>
+            </form>
+        </div>
+
+        <!-- Panel del mapa -->
+        <div class="map-panel">
+            <h2>🗺️ Vista Previa del Mapa</h2>
+            <div id="mapPreview">
+                <div class="container">
+                    <div class="header">
+                        <span class="trend-icon">🔴</span>
+                        <h1>Tasa de Homicidios en Centroamérica</h1>
+                        <p>Por cada 100,000 habitantes • 2024</p>
+                    </div>
+
+                    <div class="content">
+                        <div class="map-container">
+                            <div class="map-wrapper">
+                                <div id="mapContainer">
+                                    <!-- El mapa se cargará dinámicamente con D3.js -->
+                                </div>
+                            </div>
+                            
+                            <div class="map-tooltip" id="mapTooltip"></div>
+                        </div>
+                    </div>
+
+                    <div class="source">
+                        🗺️ Fuente: Datos de seguridad pública, 2024
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de países centroamericanos
+        const countries = [
+            { name: "El Salvador", flag: "🇸🇻", code: "SLV" },
+            { name: "Costa Rica", flag: "🇨🇷", code: "CRI" },
+            { name: "Panamá", flag: "🇵🇦", code: "PAN" },
+            { name: "Nicaragua", flag: "🇳🇮", code: "NIC" },
+            { name: "Honduras", flag: "🇭🇳", code: "HND" },
+            { name: "Guatemala", flag: "🇬🇹", code: "GTM" }
+        ];
+
+                 // Función para obtener color según el nivel y dirección con rango dinámico
+         function getDebtColor(debt, direction, countryData) {
+             const values = Object.values(countryData).filter(v => v > 0);
+             if (values.length === 0) return '#e0e0e0';
+             
+             const min = Math.min(...values);
+             const max = Math.max(...values);
+             const range = max - min;
+             
+             if (range === 0) return '#27ae60'; // Si todos los valores son iguales
+             
+             // Normalizar el valor entre 0 y 1
+             const normalized = (debt - min) / range;
+             
+             if (direction === 'ascending') {
+                 // Menor a Mayor (Verde a Rojo)
+                 if (normalized >= 0.8) return '#e74c3c'; // Muy alta
+                 if (normalized >= 0.6) return '#f39c12'; // Alta
+                 if (normalized >= 0.4) return '#f1c40f'; // Moderada
+                 if (normalized >= 0.2) return '#27ae60'; // Baja
+                 return '#2ecc71'; // Muy baja
+             } else {
+                 // Mayor a Menor (Rojo a Verde)
+                 if (normalized >= 0.8) return '#2ecc71'; // Muy baja
+                 if (normalized >= 0.6) return '#27ae60'; // Baja
+                 if (normalized >= 0.4) return '#f1c40f'; // Moderada
+                 if (normalized >= 0.2) return '#f39c12'; // Alta
+                 return '#e74c3c'; // Muy alta
+             }
+         }
+
+        // Función para obtener coordenadas simplificadas por país
+        function getCountryCoordinates(code) {
+            const coordinates = {
+                'GTM': [[[-92.2, 13.7], [-88.2, 13.7], [-88.2, 17.8], [-92.2, 17.8], [-92.2, 13.7]]],
+                'SLV': [[[-90.1, 13.1], [-87.7, 13.1], [-87.7, 14.4], [-90.1, 14.4], [-90.1, 13.1]]],
+                'HND': [[[-89.4, 12.9], [-83.1, 12.9], [-83.1, 16.5], [-89.4, 16.5], [-89.4, 12.9]]],
+                'NIC': [[[-87.7, 10.7], [-83.1, 10.7], [-83.1, 15.0], [-87.7, 15.0], [-87.7, 10.7]]],
+                'CRI': [[[-85.9, 8.0], [-82.5, 8.0], [-82.5, 11.2], [-85.9, 11.2], [-85.9, 8.0]]],
+                'PAN': [[[-83.0, 7.2], [-77.2, 7.2], [-77.2, 9.6], [-83.0, 9.6], [-83.0, 7.2]]]
+            };
+            return coordinates[code] || coordinates['GTM'];
+        }
+
+                 // Función para cargar y renderizar el mapa
+         function loadAndRenderMap(countryData, direction) {
+             // Intentar cargar el archivo optimizado primero
+             d3.json('./centroamerica.json')
+                 .then(function(centroamericaData) {
+                     console.log('✅ Archivo optimizado cargado:', centroamericaData);
+                     
+                     if (centroamericaData.features && centroamericaData.features.length > 0) {
+                         renderMap(centroamericaData.features, countryData, direction);
+                         return;
+                     }
+                 })
+                 .catch(function(error) {
+                     console.log('⚠️ Archivo optimizado no encontrado, usando datos simplificados...');
+                     renderSimplifiedMap(countryData, direction);
+                 });
+         }
+
+         // Función para renderizar mapa simplificado
+         function renderSimplifiedMap(countryData, direction) {
+             const width = 800;
+             const height = 500;
+             
+             // Limpiar contenedor y labels existentes
+             d3.select('#mapContainer').selectAll('*').remove();
+             document.querySelectorAll('.country-label').forEach(label => label.remove());
+             
+             const svg = d3.select('#mapContainer')
+                 .append('svg')
+                 .attr('width', width)
+                 .attr('height', height)
+                 .style('background', '#e3f2fd');
+
+             // Proyección para Centroamérica
+             const projection = d3.geoMercator()
+                 .fitSize([width, height], {
+                     type: 'FeatureCollection',
+                     features: [{
+                         type: 'Feature',
+                         properties: {},
+                         geometry: {
+                             type: 'Polygon',
+                             coordinates: [[[-92, 8], [-77, 8], [-77, 18], [-92, 18], [-92, 8]]]
+                         }
+                     }]
+                 });
+
+             const path = d3.geoPath().projection(projection);
+
+             // Crear países simplificados
+             const centroamericaFeatures = countries.map(country => ({
+                 type: 'Feature',
+                 properties: {
+                     name: country.name,
+                     flag: country.flag,
+                     debt: countryData[country.code] || 0,
+                     code: country.code
+                 },
+                 geometry: {
+                     type: 'Polygon',
+                     coordinates: getCountryCoordinates(country.code)
+                 }
+             }));
+
+             // Dibujar países
+             svg.selectAll('path')
+                 .data(centroamericaFeatures)
+                 .enter()
+                 .append('path')
+                 .attr('d', path)
+                 .attr('fill', d => getDebtColor(d.properties.debt, direction, countryData))
+                 .attr('stroke', '#2c3e50')
+                 .attr('stroke-width', 2)
+                 .style('cursor', 'pointer')
+                 .style('transition', 'all 0.3s ease')
+                 .on('mouseenter', function(event, d) {
+                     d3.select(this)
+                         .attr('stroke-width', 3)
+                         .attr('stroke', '#2980b9')
+                         .style('filter', 'drop-shadow(2px 2px 4px rgba(0,0,0,0.3))');
+                     
+                     // Mostrar tooltip
+                     const tooltip = d3.select('#mapTooltip');
+                     tooltip.style('opacity', 1)
+                         .html(`${d.properties.flag} ${d.properties.name}<br><strong>${d.properties.debt}</strong>`)
+                         .style('left', (event.pageX + 10) + 'px')
+                         .style('top', (event.pageY - 10) + 'px');
+                 })
+                 .on('mouseleave', function(event, d) {
+                     d3.select(this)
+                         .attr('stroke-width', 2)
+                         .attr('stroke', '#2c3e50')
+                         .style('filter', 'none');
+                     
+                     // Ocultar tooltip
+                     d3.select('#mapTooltip').style('opacity', 0);
+                 });
+
+             // Crear labels con cajitas en el centro de cada país
+             centroamericaFeatures.forEach((country) => {
+                 const centroid = path.centroid(country);
+                 const label = document.createElement('div');
+                 label.className = 'country-label';
+                 label.innerHTML = `${country.properties.flag} ${country.properties.debt}`;
+                 
+                 // Posicionar en el centro del país
+                 label.style.left = centroid[0] + 'px';
+                 label.style.top = centroid[1] + 'px';
+                 label.style.transform = 'translate(-50%, -50%)';
+                 
+                 document.querySelector('#mapContainer').appendChild(label);
+             });
+         }
+
+         // Función para renderizar mapa con datos reales
+         function renderMap(features, countryData, direction) {
+             const width = 800;
+             const height = 500;
+             
+             // Limpiar contenedor y labels existentes
+             d3.select('#mapContainer').selectAll('*').remove();
+             document.querySelectorAll('.country-label').forEach(label => label.remove());
+             
+             const svg = d3.select('#mapContainer')
+                 .append('svg')
+                 .attr('width', width)
+                 .attr('height', height)
+                 .style('background', '#e3f2fd');
+
+             // Proyección para Centroamérica
+             const projection = d3.geoMercator()
+                 .fitSize([width, height], {
+                     type: 'FeatureCollection',
+                     features: features
+                 });
+
+             const path = d3.geoPath().projection(projection);
+
+             // Agregar datos de homicidios a cada país
+             const debtData = {
+                 'GTM': { name: 'Guatemala', flag: '🇬🇹', debt: countryData['GTM'] || 0 },
+                 'SLV': { name: 'El Salvador', flag: '🇸🇻', debt: countryData['SLV'] || 0 },
+                 'HND': { name: 'Honduras', flag: '🇭🇳', debt: countryData['HND'] || 0 },
+                 'NIC': { name: 'Nicaragua', flag: '🇳🇮', debt: countryData['NIC'] || 0 },
+                 'CRI': { name: 'Costa Rica', flag: '🇨🇷', debt: countryData['CRI'] || 0 },
+                 'PAN': { name: 'Panamá', flag: '🇵🇦', debt: countryData['PAN'] || 0 }
+             };
+
+             features.forEach(country => {
+                 const countryCode = country.id || country.properties?.ISO_A3 || country.properties?.ADM0_A3 || country.properties?.iso_a3;
+                 const data = debtData[countryCode];
+                 if (data) {
+                     country.properties = {
+                         ...country.properties,
+                         ...data
+                     };
+                 }
+             });
+
+             // Dibujar países
+             svg.selectAll('path')
+                 .data(features)
+                 .enter()
+                 .append('path')
+                 .attr('d', path)
+                 .attr('fill', d => getDebtColor(d.properties.debt, direction, countryData))
+                 .attr('stroke', '#2c3e50')
+                 .attr('stroke-width', 2)
+                 .style('cursor', 'pointer')
+                 .style('transition', 'all 0.3s ease')
+                 .on('mouseenter', function(event, d) {
+                     d3.select(this)
+                         .attr('stroke-width', 3)
+                         .attr('stroke', '#2980b9')
+                         .style('filter', 'drop-shadow(2px 2px 4px rgba(0,0,0,0.3))');
+                     
+                     // Mostrar tooltip
+                     const tooltip = d3.select('#mapTooltip');
+                     tooltip.style('opacity', 1)
+                         .html(`${d.properties.flag} ${d.properties.name}<br><strong>${d.properties.debt}</strong>`)
+                         .style('left', (event.pageX + 10) + 'px')
+                         .style('top', (event.pageY - 10) + 'px');
+                 })
+                 .on('mouseleave', function(event, d) {
+                     d3.select(this)
+                         .attr('stroke-width', 2)
+                         .attr('stroke', '#2c3e50')
+                         .style('filter', 'none');
+                     
+                     // Ocultar tooltip
+                     d3.select('#mapTooltip').style('opacity', 0);
+                 });
+
+             // Crear labels con cajitas en el centro de cada país para datos reales
+             features.forEach((country) => {
+                 const centroid = path.centroid(country);
+                 const label = document.createElement('div');
+                 label.className = 'country-label';
+                 label.innerHTML = `${country.properties.flag} ${country.properties.debt}`;
+                 
+                 // Posicionar en el centro del país
+                 label.style.left = centroid[0] + 'px';
+                 label.style.top = centroid[1] + 'px';
+                 label.style.transform = 'translate(-50%, -50%)';
+                 
+                 document.querySelector('#mapContainer').appendChild(label);
+             });
+         }
+
+                 // Función para generar el mapa
+         function generateMap() {
+             // Obtener valores del formulario
+             const title = document.getElementById('title').value;
+             const subtitle = document.getElementById('subtitle').value;
+             const icon = document.getElementById('icon').value;
+             const colorDirection = document.getElementById('colorDirection').value;
+             const source = document.getElementById('source').value;
+
+             // Obtener valores de países
+             const countryData = {
+                 'SLV': parseFloat(document.getElementById('elSalvador').value) || 0,
+                 'CRI': parseFloat(document.getElementById('costaRica').value) || 0,
+                 'PAN': parseFloat(document.getElementById('panama').value) || 0,
+                 'NIC': parseFloat(document.getElementById('nicaragua').value) || 0,
+                 'HND': parseFloat(document.getElementById('honduras').value) || 0,
+                 'GTM': parseFloat(document.getElementById('guatemala').value) || 0
+             };
+
+             // Actualizar header
+             document.querySelector('.trend-icon').textContent = icon;
+             document.querySelector('.header h1').textContent = title;
+             document.querySelector('.header p').textContent = subtitle;
+
+             // Actualizar fuente
+             document.querySelector('.source').textContent = source;
+
+             // Renderizar mapa usando el mismo método que el archivo original
+             loadAndRenderMap(countryData, colorDirection);
+         }
+
+                 // Inicializar mapa al cargar la página
+         window.addEventListener('load', function() {
+             setTimeout(() => {
+                 generateMap();
+             }, 100);
+         });
+    </script>
+</body>
+</html>
