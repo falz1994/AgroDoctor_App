@@ -25,8 +25,8 @@ AgroDoctor es una aplicación móvil y web desarrollada con Flutter que ayuda a 
 ### 1. Clonar el Repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/agrodoctor.git
-cd agrodoctor
+git clone https://github.com/usuario/AgroDoctor.git
+cd AgroDoctor
 ```
 
 ### 2. Instalar Dependencias
@@ -142,7 +142,3 @@ El APK se generará en `build/app/outputs/flutter-apk/app-release.apk`
 ## Licencia
 
 Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
-
-## Contacto
-
-Para preguntas o soporte, contacta a [tu-email@ejemplo.com](mailto:tu-email@ejemplo.com)

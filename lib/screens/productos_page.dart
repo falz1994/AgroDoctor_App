@@ -158,16 +158,16 @@ class _ProductosPageState extends State<ProductosPage> {
                       
                       // Widget para limitar el ancho máximo en pantallas grandes
                       Widget gridWidget = GridView.builder(
-                        padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: crossAxisCount,
                           childAspectRatio: childAspectRatio,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: productos.length,
-                        itemBuilder: (context, index) {
-                          return _buildProductoCard(productos[index]);
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    itemCount: productos.length,
+                    itemBuilder: (context, index) {
+                      return _buildProductoCard(productos[index]);
                         },
                       );
                       

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../widgets/login_modal.dart';
-import '../widgets/diagnostico_list.dart';
 import '../widgets/noticias_page_view.dart';
 import '../widgets/clima_widget.dart';
 import '../models/noticia_model.dart';
+import '../models/shared_models.dart';
+import '../services/caso_diagnostico_service.dart';
 import '../providers/auth_provider.dart';
+import 'caso_detail_page.dart';
 
 class LandingPage extends StatelessWidget {
   const LandingPage({super.key});
@@ -42,9 +44,9 @@ class LandingPage extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/diagnostico-results');
+                Navigator.pushNamed(context, '/casos');
               },
-              child: const Text("Mis Diagnósticos", style: TextStyle(color: Colors.white)),
+              child: const Text("Mis Casos", style: TextStyle(color: Colors.white)),
             ),
             TextButton(
               onPressed: () {
@@ -60,6 +62,10 @@ class LandingPage extends StatelessWidget {
                   onSelected: (value) {
                     if (value == 'profile') {
                       Navigator.pushNamed(context, '/profile');
+                    } else if (value == 'admin') {
+                      Navigator.pushNamed(context, '/admin');
+                    } else if (value == 'admin_offline') {
+                      Navigator.pushNamed(context, '/admin-offline');
                     } else if (value == 'logout') {
                       // Cerrar sesión de forma síncrona para evitar problemas
                       _handleLogout(context, authProvider);
@@ -73,6 +79,26 @@ class LandingPage extends StatelessWidget {
                           const Icon(Icons.person, size: 18),
                           const SizedBox(width: 8),
                           const Text('Mi Perfil'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'admin',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.admin_panel_settings, size: 18),
+                          const SizedBox(width: 8),
+                          const Text('Panel de Administración'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem<String>(
+                      value: 'admin_offline',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.cloud_off, size: 18),
+                          const SizedBox(width: 8),
+                          const Text('Panel Admin (Offline)'),
                         ],
                       ),
                     ),
@@ -186,6 +212,42 @@ class LandingPage extends StatelessWidget {
                 );
               },
             ),
+            
+            // Sección de casos activos (solo para usuarios autenticados)
+            if (isLoggedIn)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Mis Casos Activos",
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/casos');
+                          },
+                          icon: const Icon(Icons.folder),
+                          label: const Text("Ver todos"),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 200, // Altura fija para el carrusel
+                      child: _buildCasosActivosCarousel(context),
+                    ),
+                  ],
+                ),
+              ),
             
             // Sección de noticias del IPSA
             Padding(
@@ -381,54 +443,6 @@ class LandingPage extends StatelessWidget {
               ),
             ),
             
-            // Sección de diagnósticos recientes (solo para usuarios autenticados)
-            if (isLoggedIn)
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          "Mis Diagnósticos",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/diagnostico-results');
-                          },
-                          icon: const Icon(Icons.history),
-                          label: const Text("Ver todos"),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    const SizedBox(
-                      height: 400, // Altura fija para el listado
-                      child: Card(
-                        elevation: 2,
-                        child: Padding(
-                          padding: EdgeInsets.all(16),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                // Importamos el widget de listado de diagnósticos
-                                DiagnosticoList(),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             
             
             // Footer
@@ -800,11 +814,11 @@ class LandingPage extends StatelessWidget {
           const SizedBox(height: 4),
           ListTile(
             contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-            leading: const Icon(Icons.history),
-            title: const Text('Mis Diagnósticos'),
+            leading: const Icon(Icons.folder),
+            title: const Text('Mis Casos'),
             onTap: () {
               Navigator.pop(context); // Cerrar drawer
-              Navigator.pushNamed(context, '/diagnostico-results');
+              Navigator.pushNamed(context, '/casos');
             },
           ),
           const SizedBox(height: 4),
@@ -831,6 +845,27 @@ class LandingPage extends StatelessWidget {
             const SizedBox(height: 2),
             ListTile(
               contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+              leading: const Icon(Icons.admin_panel_settings),
+              title: const Text('Panel de Administración'),
+              onTap: () {
+                Navigator.pop(context); // Cerrar drawer
+                Navigator.pushNamed(context, '/admin');
+              },
+            ),
+            const SizedBox(height: 2),
+            ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+              leading: const Icon(Icons.cloud_off),
+              title: const Text('Panel Admin (Offline)'),
+              subtitle: const Text('Modo sin conexión'),
+              onTap: () {
+                Navigator.pop(context); // Cerrar drawer
+                Navigator.pushNamed(context, '/admin-offline');
+              },
+            ),
+            const SizedBox(height: 2),
+            ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
               leading: const Icon(Icons.logout),
               title: const Text('Cerrar Sesión'),
               onTap: () {
@@ -842,6 +877,239 @@ class LandingPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // Método para construir el carrusel de casos activos
+  Widget _buildCasosActivosCarousel(BuildContext context) {
+    return StreamBuilder<List<CasoDiagnosticoModel>>(
+      stream: CasoDiagnosticoService.getUserCasos(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                const SizedBox(height: 8),
+                Text(
+                  'Error al cargar casos',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final casos = snapshot.data ?? [];
+        
+        // Filtrar solo casos activos
+        final casosActivos = casos.where((caso) => caso.estado == EstadoCaso.activo).toList();
+        
+        if (casosActivos.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.folder_off, size: 50, color: Colors.grey),
+                SizedBox(height: 8),
+                Text(
+                  'No tienes casos activos',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Realiza un diagnóstico para crear tu primer caso',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          itemCount: casosActivos.length,
+          itemBuilder: (context, index) {
+            final caso = casosActivos[index];
+            return _buildCasoCard(context, caso);
+          },
+        );
+      },
+    );
+  }
+
+  // Método para construir una tarjeta de caso
+  Widget _buildCasoCard(BuildContext context, CasoDiagnosticoModel caso) {
+    return Container(
+      width: 280,
+      margin: const EdgeInsets.only(right: 12),
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CasoDetailPage(caso: caso),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header con nombre y estado
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        caso.nombre,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Activo',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // Información del diagnóstico
+                Row(
+                  children: [
+                    Icon(Icons.medical_services, size: 14, color: Colors.grey[600]),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        caso.diseaseName ?? 'Sin diagnóstico',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (caso.confidence != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: caso.confidence! > 70 
+                              ? Colors.red.shade100 
+                              : Colors.amber.shade100,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${caso.confidence}%',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: caso.confidence! > 70 
+                                ? Colors.red.shade700 
+                                : Colors.amber.shade700,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // Fecha de creación
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today, size: 12, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Creado: ${_formatDate(caso.createdAt)}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const Spacer(),
+                
+                // Botón para ver detalles
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CasoDetailPage(caso: caso),
+                          ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Ver Detalles',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
 

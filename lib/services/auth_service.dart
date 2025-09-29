@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   // Para web, el clientId se configura en el index.html
   // Para aplicaciones móviles, se usa la configuración predeterminada
   final GoogleSignIn _googleSignIn = GoogleSignIn(
@@ -64,6 +66,9 @@ class AuthService extends ChangeNotifier {
       // Actualizar el perfil del usuario
       await userCredential.user!.reload();
       _user = _auth.currentUser;
+      
+      // Guardar usuario en Firestore
+      await _saveUserToFirestore(userCredential.user!, name, email);
       
       _isLoading = false;
       notifyListeners();
@@ -140,6 +145,15 @@ class AuthService extends ChangeNotifier {
       
       debugPrint('Sesión iniciada correctamente: ${userCredential.user?.email}');
       
+      // Guardar usuario en Firestore si es nuevo
+      if (userCredential.additionalUserInfo?.isNewUser == true) {
+        await _saveUserToFirestore(
+          userCredential.user!, 
+          userCredential.user!.displayName ?? 'Usuario', 
+          userCredential.user!.email ?? ''
+        );
+      }
+      
       _isLoading = false;
       notifyListeners();
       return true;
@@ -215,6 +229,26 @@ class AuthService extends ChangeNotifier {
     }
     
     notifyListeners();
+  }
+  
+  // Método privado para guardar usuario en Firestore
+  Future<void> _saveUserToFirestore(User user, String displayName, String email) async {
+    try {
+      await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'displayName': displayName,
+        'email': email,
+        'photoURL': user.photoURL,
+        'phoneNumber': user.phoneNumber,
+        'emailVerified': user.emailVerified,
+        'createdAt': FieldValue.serverTimestamp(),
+        'lastSignIn': FieldValue.serverTimestamp(),
+      });
+      debugPrint('Usuario guardado en Firestore: ${user.uid}');
+    } catch (e) {
+      debugPrint('Error al guardar usuario en Firestore: $e');
+      // No lanzamos excepción aquí para no interrumpir el flujo de autenticación
+    }
   }
 }
 

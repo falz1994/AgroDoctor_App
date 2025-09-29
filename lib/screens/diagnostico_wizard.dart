@@ -6,6 +6,8 @@ import '../constants/app_colors.dart';
 import '../services/location_service.dart';
 import '../services/image_service.dart';
 import '../services/diagnostico_service.dart';
+import '../services/caso_diagnostico_service.dart';
+import 'caso_detail_page.dart';
 
 class DiagnosticoWizard extends StatefulWidget {
   const DiagnosticoWizard({super.key});
@@ -407,20 +409,10 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
         return;
       }
       
-      debugPrint('Navegando a la página de resultados...');
+      debugPrint('Guardando diagnóstico y creando caso...');
       
-      // Navegar directamente a la página de resultados
-      Navigator.of(context).pushReplacementNamed(
-        '/diagnostico-results',
-        arguments: {
-          'resultados': results,
-          'diagnostico': null,
-        },
-      );
-      
-      // Guardar el diagnóstico en segundo plano
-      DiagnosticoService.saveDiagnosisInBackground(
-        context,
+      // Guardar el diagnóstico y crear caso automáticamente
+      await _saveDiagnosisAndCreateCase(
         results,
         image: _selectedImage,
         description: _descriptionController.text,
@@ -442,6 +434,82 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
           SnackBar(
             content: Text('Error al procesar el diagnóstico: $e'),
             backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Función para guardar diagnóstico y crear caso automáticamente
+  Future<void> _saveDiagnosisAndCreateCase(
+    Map<String, dynamic> results, {
+    File? image,
+    String? description,
+    String? location,
+    String? cropStage,
+  }) async {
+    try {
+      debugPrint('🔄 Guardando diagnóstico y creando caso automáticamente...');
+      
+      // Primero guardar el diagnóstico
+      final diagnosisId = await DiagnosticoService.saveDiagnosis(
+        image: image,
+        description: description,
+        location: location,
+        cropStage: cropStage,
+        results: results,
+      );
+      
+      if (diagnosisId != null) {
+        debugPrint('✅ Diagnóstico guardado con ID: $diagnosisId');
+        
+        // Obtener el diagnóstico guardado
+        final diagnostico = await DiagnosticoService.getDiagnosisById(diagnosisId);
+        
+        if (diagnostico != null) {
+          debugPrint('📋 Creando caso automáticamente...');
+          
+          // Crear el caso automáticamente
+          final caso = await CasoDiagnosticoService.crearCasoDesdeDignostico(
+            diagnostico: diagnostico,
+            nombre: 'Caso ${diagnostico.diseaseName}',
+            contenidoLog: 'Caso creado automáticamente desde diagnóstico',
+          );
+          
+          debugPrint('✅ Caso creado automáticamente con ID: ${caso.id}');
+          
+          // Navegar al detalle del caso recién creado
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CasoDetailPage(caso: caso),
+              ),
+            );
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Diagnóstico y caso creados exitosamente'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        } else {
+          debugPrint('❌ No se pudo obtener el diagnóstico guardado');
+        }
+      } else {
+        debugPrint('❌ No se pudo guardar el diagnóstico');
+      }
+    } catch (e) {
+      debugPrint('❌ Error al guardar diagnóstico y crear caso: $e');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al guardar el diagnóstico: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }

@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
-import '../models/diagnostico_model.dart';
 import '../services/caso_diagnostico_service.dart';
 import '../models/shared_models.dart';
 import 'caso_detail_page.dart';
 
-class DiagnosticoResultsPage extends StatelessWidget {
-  final DiagnosticoModel? diagnostico;
-  final Map<String, dynamic>? resultados;
+class CasosPage extends StatefulWidget {
+  const CasosPage({super.key});
 
-  const DiagnosticoResultsPage({
-    super.key, 
-    this.diagnostico,
-    this.resultados,
-  });
+  @override
+  State<CasosPage> createState() => _CasosPageState();
+}
 
+class _CasosPageState extends State<CasosPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Mis Casos"),
+        title: const Text('Mis Casos'),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         actions: [
@@ -27,13 +24,83 @@ class DiagnosticoResultsPage extends StatelessWidget {
             icon: const Icon(Icons.refresh),
             onPressed: () {
               // Forzar actualización de la lista
-              (context as Element).markNeedsBuild();
+              setState(() {});
             },
             tooltip: 'Actualizar lista',
           ),
         ],
       ),
-      body: _buildCasosList(),
+      body: StreamBuilder<List<CasoDiagnosticoModel>>(
+        stream: CasoDiagnosticoService.getUserCasos(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 60),
+                  const SizedBox(height: 16),
+                  Text('Error: ${snapshot.error}'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Forzar reconstrucción
+                      (context as Element).markNeedsBuild();
+                    },
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final casos = snapshot.data ?? [];
+          
+          if (casos.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.folder_off, size: 80, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No tienes casos registrados',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Realiza un diagnóstico para crear tu primer caso',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: casos.length,
+            itemBuilder: (context, index) {
+              final caso = casos[index];
+              return _buildCasoCard(context, caso);
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.pushNamed(context, '/diagnostico');
@@ -43,79 +110,6 @@ class DiagnosticoResultsPage extends StatelessWidget {
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
       ),
-    );
-  }
-
-  Widget _buildCasosList() {
-    return StreamBuilder<List<CasoDiagnosticoModel>>(
-      stream: CasoDiagnosticoService.getUserCasos(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 60),
-                const SizedBox(height: 16),
-                Text('Error: ${snapshot.error}'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    (context as Element).markNeedsBuild();
-                  },
-                  child: const Text('Reintentar'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        final casos = snapshot.data ?? [];
-        
-        if (casos.isEmpty) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.folder_off, size: 80, color: Colors.grey),
-                SizedBox(height: 16),
-                Text(
-                  'No tienes casos registrados',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Realiza un diagnóstico para crear tu primer caso',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: casos.length,
-          itemBuilder: (context, index) {
-            final caso = casos[index];
-            return _buildCasoCard(context, caso);
-          },
-        );
-      },
     );
   }
 
@@ -229,20 +223,20 @@ class DiagnosticoResultsPage extends StatelessWidget {
                 ],
               ),
               
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(Icons.update, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Actualizado: ${_formatDate(caso.updatedAt)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.update, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Actualizado: ${_formatDate(caso.updatedAt)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
               
               const SizedBox(height: 12),
               
