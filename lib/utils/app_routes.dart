@@ -7,7 +7,6 @@ import '../screens/diagnostico_results_page.dart';
 import '../screens/reportes_page.dart';
 import '../screens/productos_page.dart';
 import '../screens/admin_panel_page.dart';
-import '../screens/admin_panel_offline_page.dart';
 import '../screens/casos_page.dart';
 import '../models/diagnostico_model.dart';
 
@@ -21,7 +20,6 @@ class AppRoutes {
   static const String productos = '/productos';
   static const String casos = '/casos';
   static const String adminPanel = '/admin';
-  static const String adminPanelOffline = '/admin-offline';
 
   static Map<String, WidgetBuilder> get routes => {
     home: (context) => const LandingPage(),
@@ -33,7 +31,6 @@ class AppRoutes {
     productos: (context) => const ProductosPage(),
     casos: (context) => const CasosPage(),
     adminPanel: (context) => const AdminPanelPage(),
-    adminPanelOffline: (context) => const AdminPanelOfflinePage(),
   };
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -78,8 +75,6 @@ class AppRoutes {
       case adminPanel:
         return MaterialPageRoute(builder: (_) => const AdminPanelPage());
         
-      case adminPanelOffline:
-        return MaterialPageRoute(builder: (_) => const AdminPanelOfflinePage());
       default:
         debugPrint('Ruta no definida: ${settings.name}');
         return MaterialPageRoute(

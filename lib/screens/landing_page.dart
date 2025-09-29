@@ -64,8 +64,6 @@ class LandingPage extends StatelessWidget {
                       Navigator.pushNamed(context, '/profile');
                     } else if (value == 'admin') {
                       Navigator.pushNamed(context, '/admin');
-                    } else if (value == 'admin_offline') {
-                      Navigator.pushNamed(context, '/admin-offline');
                     } else if (value == 'logout') {
                       // Cerrar sesión de forma síncrona para evitar problemas
                       _handleLogout(context, authProvider);
@@ -89,16 +87,6 @@ class LandingPage extends StatelessWidget {
                           const Icon(Icons.admin_panel_settings, size: 18),
                           const SizedBox(width: 8),
                           const Text('Panel de Administración'),
-                        ],
-                      ),
-                    ),
-                    PopupMenuItem<String>(
-                      value: 'admin_offline',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.cloud_off, size: 18),
-                          const SizedBox(width: 8),
-                          const Text('Panel Admin (Offline)'),
                         ],
                       ),
                     ),
@@ -840,27 +828,6 @@ class LandingPage extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context); // Cerrar drawer
                 Navigator.pushNamed(context, '/profile');
-              },
-            ),
-            const SizedBox(height: 2),
-            ListTile(
-              contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-              leading: const Icon(Icons.admin_panel_settings),
-              title: const Text('Panel de Administración'),
-              onTap: () {
-                Navigator.pop(context); // Cerrar drawer
-                Navigator.pushNamed(context, '/admin');
-              },
-            ),
-            const SizedBox(height: 2),
-            ListTile(
-              contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 6),
-              leading: const Icon(Icons.cloud_off),
-              title: const Text('Panel Admin (Offline)'),
-              subtitle: const Text('Modo sin conexión'),
-              onTap: () {
-                Navigator.pop(context); // Cerrar drawer
-                Navigator.pushNamed(context, '/admin-offline');
               },
             ),
             const SizedBox(height: 2),
