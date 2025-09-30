@@ -43,15 +43,22 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
     final prefs = await SharedPreferences.getInstance();
     final dontShow = prefs.getBool('dont_show_diagnostico_info') ?? false;
     
+    debugPrint('Verificando si mostrar diálogo de información: dontShow = $dontShow');
+    
     if (!dontShow && mounted) {
-      // Mostrar como dialog/popup
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Esperar un poco para asegurar que el widget esté completamente construido
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (mounted) {
+        debugPrint('Mostrando diálogo de información del diagnóstico');
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => _buildInfoDialog(),
         );
-      });
+      }
+    } else {
+      debugPrint('No se muestra el diálogo: dontShow = $dontShow, mounted = $mounted');
     }
   }
 
@@ -67,6 +74,19 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
       appBar: AppBar(
         title: const Text("Diagnóstico de Cultivo"),
         backgroundColor: AppColors.primaryColor,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: () {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => _buildInfoDialog(),
+              );
+            },
+            tooltip: 'Ver instrucciones',
+          ),
+        ],
       ),
       body: _isProcessing ? _buildLoadingAnimation() : Stepper(
         type: StepperType.vertical,
@@ -539,14 +559,30 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
       builder: (context, setDialogState) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
           ),
-          title: Row(
-            children: [
-              Icon(Icons.info_outline, color: AppColors.primaryColor),
-              const SizedBox(width: 8),
-              const Text('¿Cómo funciona el diagnóstico?'),
-            ],
+          title: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.eco, color: AppColors.primaryColor, size: 32),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    '¡Bienvenido al Diagnóstico!',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -554,18 +590,43 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'El proceso es simple:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  'Te guiaremos paso a paso para diagnosticar tu cultivo:',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
                 ),
-                const SizedBox(height: 12),
-                _buildInfoStep('1. Datos básicos', 'Información del cultivo y ubicación'),
-                _buildInfoStep('2. Imagen', 'Toma una foto de la parte afectada'),
-                _buildInfoStep('3. IA analiza', 'Diagnóstico automático (ej: Roya del frijol)'),
-                _buildInfoStep('4. Caso creado', 'Seguimiento y control del tratamiento'),
-                const SizedBox(height: 12),
-                const Text(
-                  'El caso puede ser actualizado y cerrado cuando sea necesario.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                const SizedBox(height: 16),
+                _buildInfoStep('1. Ubicación y Etapa', 'Información del cultivo y ubicación geográfica'),
+                _buildInfoStep('2. Fotografía', 'Toma una foto clara de la parte afectada'),
+                _buildInfoStep('3. Análisis IA', 'Nuestro sistema analiza la imagen automáticamente'),
+                _buildInfoStep('4. Resultado', 'Recibe el diagnóstico y recomendaciones'),
+                _buildInfoStep('5. Seguimiento', 'Se crea un caso para monitorear el tratamiento'),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.lightbulb, color: Colors.blue.shade600, size: 20),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'El caso se puede actualizar y cerrar cuando sea necesario.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -593,25 +654,24 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
           actions: [
             TextButton(
               onPressed: () async {
-                // Verificar si el checkbox está marcado
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('dont_show_diagnostico_info', true);
                 Navigator.of(context).pop();
               },
-              child: const Text('Entendido'),
+              child: const Text('Cerrar'),
             ),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: () async {
-                // Verificar si el checkbox está marcado
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('dont_show_diagnostico_info', true);
                 Navigator.of(context).pop();
               },
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Comenzar Diagnóstico'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              child: const Text('Comenzar'),
             ),
           ],
         );
