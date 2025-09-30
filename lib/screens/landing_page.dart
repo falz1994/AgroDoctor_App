@@ -8,6 +8,7 @@ import '../models/noticia_model.dart';
 import '../models/shared_models.dart';
 import '../services/caso_diagnostico_service.dart';
 import '../providers/auth_provider.dart';
+import '../utils/admin_utils.dart';
 import 'caso_detail_page.dart';
 
 class LandingPage extends StatelessWidget {
@@ -80,16 +81,18 @@ class LandingPage extends StatelessWidget {
                         ],
                       ),
                     ),
-                    PopupMenuItem<String>(
-                      value: 'admin',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.admin_panel_settings, size: 18),
-                          const SizedBox(width: 8),
-                          const Text('Panel de Administración'),
-                        ],
+                    // Solo mostrar opción de admin si el usuario es el administrador
+                    if (AdminUtils.isAdmin(authProvider.user))
+                      PopupMenuItem<String>(
+                        value: 'admin',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.admin_panel_settings, size: 18),
+                            const SizedBox(width: 8),
+                            const Text('Panel de Administración'),
+                          ],
+                        ),
                       ),
-                    ),
                     const PopupMenuDivider(),
                     const PopupMenuItem<String>(
                       value: 'logout',

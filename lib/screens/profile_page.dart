@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../providers/auth_provider.dart';
+import '../utils/admin_utils.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -87,15 +88,16 @@ class ProfilePage extends StatelessWidget {
                   ),
                   const Divider(),
                   
-                  // Opciones de administración
-                  ListTile(
-                    leading: const Icon(Icons.admin_panel_settings),
-                    title: const Text("Panel de Administración"),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () {
-                      Navigator.pushNamed(context, '/admin');
-                    },
-                  ),
+                  // Opciones de administración (solo para el administrador)
+                  if (AdminUtils.isAdminByEmail(user?.email))
+                    ListTile(
+                      leading: const Icon(Icons.admin_panel_settings),
+                      title: const Text("Panel de Administración"),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () {
+                        Navigator.pushNamed(context, '/admin');
+                      },
+                    ),
                   const Divider(),
                   const SizedBox(height: 20),
                   

@@ -43,3 +43,22 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Documentation and diagrams
+*.puml
+*.html
+*.md
+!README.md
+
+# Firebase
+firebase.json
+firestore.rules
+firestore.indexes.json
+
+# Build artifacts
+docs/
+build/
+
+# Temporary files
+*.tmp
+*.temp

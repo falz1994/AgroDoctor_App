@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import '../constants/app_colors.dart';
 import '../services/location_service.dart';
@@ -35,6 +36,23 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
       vsync: this,
       duration: const Duration(seconds: 3),
     );
+    _checkAndShowInfoMessage();
+  }
+  
+  Future<void> _checkAndShowInfoMessage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dontShow = prefs.getBool('dont_show_diagnostico_info') ?? false;
+    
+    if (!dontShow && mounted) {
+      // Mostrar como dialog/popup
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => _buildInfoDialog(),
+        );
+      });
+    }
   }
 
   @override
@@ -514,5 +532,130 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
         );
       }
     }
+  }
+  
+  Widget _buildInfoDialog() {
+    return StatefulBuilder(
+      builder: (context, setDialogState) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.info_outline, color: AppColors.primaryColor),
+              const SizedBox(width: 8),
+              const Text('¿Cómo funciona el diagnóstico?'),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'El proceso es simple:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                _buildInfoStep('1. Datos básicos', 'Información del cultivo y ubicación'),
+                _buildInfoStep('2. Imagen', 'Toma una foto de la parte afectada'),
+                _buildInfoStep('3. IA analiza', 'Diagnóstico automático (ej: Roya del frijol)'),
+                _buildInfoStep('4. Caso creado', 'Seguimiento y control del tratamiento'),
+                const SizedBox(height: 12),
+                const Text(
+                  'El caso puede ser actualizado y cerrado cuando sea necesario.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: false,
+                      onChanged: (value) {
+                        setDialogState(() {
+                          // El valor se manejará en los botones
+                        });
+                      },
+                      activeColor: AppColors.primaryColor,
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'No mostrar este mensaje nuevamente',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                // Verificar si el checkbox está marcado
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('dont_show_diagnostico_info', true);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Entendido'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // Verificar si el checkbox está marcado
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool('dont_show_diagnostico_info', true);
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Comenzar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  Widget _buildInfoStep(String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check,
+              color: Colors.white,
+              size: 12,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  description,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

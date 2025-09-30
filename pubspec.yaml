@@ -41,6 +41,7 @@ dependencies:
   geocoding: ^2.2.1
   image_picker: ^1.0.7
   image_picker_for_web: ^3.0.2
+  shared_preferences: ^2.2.2
   
   # Firebase
   firebase_core: ^2.25.4

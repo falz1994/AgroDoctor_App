@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
+import '../providers/auth_provider.dart';
+import '../utils/admin_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminPanelPage extends StatefulWidget {
@@ -27,6 +30,48 @@ class _AdminPanelPageState extends State<AdminPanelPage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    
+    // Verificar si el usuario es el administrador
+    if (!AdminUtils.isAdmin(authProvider.user)) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Acceso Denegado"),
+          backgroundColor: AppColors.primaryColor,
+        ),
+        body: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.block,
+                size: 80,
+                color: Colors.red,
+              ),
+              SizedBox(height: 20),
+              Text(
+                "Acceso Denegado",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              SizedBox(height: 10),
+              Text(
+                "No tienes permisos para acceder al panel de administración",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text("Panel de Administración"),
