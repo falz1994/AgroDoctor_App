@@ -1,4 +1,4 @@
-import 'dart:io';
+import '../platform/file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import '../utils/web_config.dart';
@@ -13,10 +13,9 @@ class ImageService {
       try {
         final XFile? image = await _picker.pickImage(source: ImageSource.camera);
         if (image != null) {
-          // En web no podemos devolver un File directamente
-          // pero para mantener la compatibilidad con el resto del código
-          // devolvemos un File con la ruta del XFile
-          return File(image.path);
+          // En web, wrap the XFile inside our platform File wrapper so
+          // callers can use readAsBytes() uniformly.
+          return File(image as dynamic);
         }
       } catch (e) {
         debugPrint('Error al tomar foto en web: ${e.toString()}');
@@ -39,8 +38,8 @@ class ImageService {
       try {
         final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
         if (image != null) {
-          // En web no podemos devolver un File directamente
-          return File(image.path);
+          // Wrap XFile for web
+          return File(image as dynamic);
         }
       } catch (e) {
         debugPrint('Error al seleccionar imagen en web: ${e.toString()}');

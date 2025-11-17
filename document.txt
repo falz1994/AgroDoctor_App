@@ -1,0 +1,535 @@
+# I. SECCIÓN PRELIMINAR
+
+## Portada
+
+**Contenido:** Título del proyecto, nombres del equipo, nombre del docente, asignatura, fecha
+
+> **Nota:** Agregar logotipo institucional si aplica, versión del documento y código del curso. Mantener control de versiones: `vX.Y.Z` y fecha de actualización
+
+---
+
+## Resumen Ejecutivo (Abstract)
+
+**Contenido:** Descripción concisa del problema, solución propuesta y tecnologías empleadas
+
+> **Nota:** Responder claramente: 1) problema que resuelve, 2) público objetivo, 3) propuesta de valor, 4) tecnologías principales. Extensión máxima: 150–250 palabras
+
+---
+
+## Tabla de Contenido (Índice)
+
+**Contenido:** Generada automáticamente en Word
+
+> **Nota:** Usar estilos de Word para títulos y subtítulos. Actualizar el índice antes de la entrega final e incluir número de página por sección
+
+---
+
+## Índice de Tablas e Imágenes
+
+**Contenido:** (Opcional pero recomendado)
+
+> **Nota:** Listar figuras, diagramas y tablas con numeración consistente y número de página
+
+---
+
+# CAPÍTULO I: INTRODUCCIÓN Y ADMINISTRACIÓN DEL PROYECTO
+
+## 1.1 Introducción: Contexto General y Visión del Proyecto
+
+> **Nota:** Explicar relevancia, necesidad que satisface, dominio de aplicación y organización/cliente objetivo en 1–2 párrafos
+
+### Respuesta
+
+- **Nombre del proyecto:** AgroDoctor
+- **Contexto:** AgroDoctor es una aplicación multiplataforma (móvil y web) desarrollada con Flutter que facilita el diagnóstico de enfermedades en cultivos mediante análisis de imágenes asistido por inteligencia artificial, gestiona casos de diagnóstico y ofrece un marketplace de insumos agrícolas.
+- **Visión:** Ser una plataforma accesible y escalable que permita a agricultores y técnicos diagnosticar, documentar y gestionar problemas fitosanitarios con trazabilidad y datos georreferenciados.
+- **Alcance (alto nivel):** captura y subida de imágenes, análisis por IA, creación automática de casos, gestión de casos (registros, imágenes, estados), autenticación (correo y Google Sign-In), mapas georreferenciados, marketplace y panel de administración.
+
+---
+
+## 1.2 Problema y Alcance: Planteamiento del Problema, Justificación, Impacto y Objetivos
+
+> **Nota:** Precisar problemas actuales, impacto en la organización y alcance/limitaciones. Indicar explícitamente lo que el proyecto no cubre en esta fase
+
+### Respuesta
+
+- **Planteamiento del problema:** En muchas zonas agrícolas no existe acceso rápido a diagnóstico experto; la dispersión de información y la falta de trazabilidad dificultan la respuesta temprana ante enfermedades de cultivos.
+- **Justificación:** La automatización en la identificación y seguimiento de enfermedades reduce tiempos y costos, mejora la precisión de las intervenciones y posibilita acumular datos útiles para análisis regionales.
+- **Impacto esperado:** Mejora en la toma de decisiones, reducción de pérdidas por enfermedades, mejor acceso a insumos y disponibilidad de datos estadísticos por zona.
+- **Objetivo general:** Construir una aplicación multiplataforma que permita diagnosticar enfermedades por imagen, crear y gestionar casos de seguimiento y facilitar el acceso a insumos agrícolas.
+- **Objetivos específicos:**
+  1. Implementar un flujo guiado de diagnóstico por imágenes (asistente) que capture datos clave y envíe imágenes para análisis.
+  2. Integrar autenticación segura (correo/contraseña y Google Sign-In) y persistencia de usuarios en Firestore.
+  3. Crear y almacenar casos de diagnóstico automáticamente en Firestore, con registro de actividades y gestión de estados.
+  4. Proveer visualización geográfica de casos mediante Google Maps y servicios de geolocalización.
+  5. Desarrollar un marketplace básico para productos agrícolas con búsqueda y detalle.
+  6. Implementar un panel de administración para la gestión de usuarios y casos.
+  7. Definir explícitamente exclusiones del alcance: entrenamiento del modelo IA y logística de envíos del marketplace no contemplados en la primera fase.
+
+---
+
+## 1.3 Metodología de Desarrollo: Definición y Justificación de la Metodología Elegida
+
+> **Nota:** Justificar la metodología elegida y describir sus ceremonias/artefactos. Incluir diagrama del proceso si es posible
+
+### Respuesta
+
+- **Observación:** El repositorio no incluye un documento formal de metodología. Se recomienda emplear una metodología ágil tipo SCRUM por ser adecuada a productos iterativos que requieren validación continua (especialmente cuando hay modelos de IA que necesitan ajuste).
+- **Propuesta de proceso (sugerido):** sprints de 2 semanas, backlog priorizado por Product Owner, reuniones diarias de 15 minutos, demos al final de cada sprint y retrospectivas.
+- **Justificación:** Permite recibir feedback temprano de usuarios y ajustar el modelo de IA y UX con iteraciones cortas.
+
+---
+
+## 1.4 Administración del Proyecto: Roles y Responsabilidades, Cronograma Detallado
+
+> **Nota:** Definir claramente roles y responsabilidades, incluir organigrama, y presentar un cronograma con hitos, actividades, duración y dependencias. Usar herramientas como MS Project/Excel/diagramadores en línea
+
+### Respuesta
+
+#### Roles Sugeridos y Responsabilidades
+
+- **Product Owner:** prioriza funcionalidades y valida entregables.
+- **Scrum Master / Líder técnico:** coordina sprints, facilita impedimentos.
+- **Developers (Flutter):** implementan UI, proveedores de estado y servicios (p. ej., `AuthService`, `CasoDiagnosticoService`).
+- **Data Scientist / ML Engineer:** desarrolla y valida modelos de diagnóstico (el entrenamiento no se observa en el repositorio; asumir integración externa o servicio separado).
+- **QA / Tester:** diseña y ejecuta pruebas (unitarias, de integración y con Firebase Emulator Suite).
+- **DevOps:** configura CI/CD y despliegues (Firebase Hosting y releases Android/iOS).
+
+#### Cronograma y Artefactos
+
+- El repositorio contiene `proyecto_gantt.csv` y `proyecto_gantt.gantt` en la raíz; utilizar esos archivos para generar el diagrama Gantt oficial.
+- **Hitos recomendados (ejemplo para 4–6 sprints):**
+  - **Sprint 1 (MVP-Auth):** autenticación (correo y Google), estructura de rutas y proveedor de estado.
+  - **Sprint 2 (MVP-Diagnóstico):** captura de imagen, flujo asistente, integración básica de IA (o placeholder) y creación de diagnóstico.
+  - **Sprint 3 (MVP-Casos):** creación automática de casos, lista y detalle de casos, registros.
+  - **Sprint 4 (Mapa y marketplace):** integración con Google Maps y catálogo básico de productos.
+  - **Sprint 5 (Admin y QA):** panel de administración, pruebas, configuración de `firestore.rules` e índices.
+- Mantener backlog en issues y tablero (GitHub Projects o similar).
+
+---
+
+## 1.5 Administración del Riesgo: Identificación de Riesgos y Plan de Mitigación
+
+> **Nota:** Identificar riesgos con probabilidad/impacto y definir acciones preventivas/correctivas. Incluir matriz de riesgos
+
+### Respuesta
+
+#### Riesgo 1: Configuración Privada de Firebase Faltante
+
+- **Descripción:** Archivos `google-services.json` y `GoogleService-Info.plist` faltantes
+- **Impacto:** No se puede ejecutar la app en dispositivos móviles sin configurar localmente
+- **Mitigación:** Documentar proceso de configuración en README (ya presente), usar variables de entorno o archivos fuera del control de versiones y crear un script `setup` para desarrolladores
+
+#### Riesgo 2: Consultas en Firestore que Requieren Índices
+
+- **Descripción:** Errores de runtime por índices faltantes
+- **Mitigación:** Revisar y aplicar `firestore.indexes.json` en la consola de Firebase; usar Emulator Suite para detectar faltantes
+
+#### Riesgo 3: Errores de Integración con Google Sign-In y OAuth
+
+- **Descripción:** Problemas con `clientId` web y credenciales
+- **Mitigación:** Documentar pasos claros en README y pruebas automáticas en CI para detectar regresiones
+
+#### Riesgo 4: Calidad del Modelo IA
+
+- **Descripción:** Posibles falsos positivos/negativos
+- **Mitigación:** Protocolo de validación, datasets representativos, feedback humano en el flujo (confirmación/editar diagnóstico) y posibilidad de retrain
+
+#### Riesgo 5: Conectividad en Campo
+
+- **Descripción:** Problemas de offline/latencia
+- **Mitigación:** Implementar reintentos, colas locales y UX que informe estado de sincronización
+
+#### Riesgo 6: Seguridad y Reglas Insuficientes en Firestore
+
+- **Descripción:** Vulnerabilidades en reglas de seguridad
+- **Mitigación:** Pruebas con Firebase Emulator Suite y revisión exhaustiva de `firestore.rules`
+
+---
+
+## 1.6 Herramientas y Entorno: Herramientas CASE e Infraestructura Tecnológica
+
+> **Nota:** Especificar software de modelado UML, IDE, gestor de base de datos y arquitectura de despliegue. Incluir diagrama de despliegue con componentes hardware/software
+
+### Respuesta
+
+- **Lenguaje y framework:** Flutter (Dart), SDK objetivo en `pubspec.yaml`: `sdk: ^3.9.2`
+- **Backend/infraestructura:** Firebase (Auth, Firestore, Storage). Archivos relevantes en repo:
+  - `firebase.json`
+  - `firestore.rules`
+  - `firestore.indexes.json`
+  - `lib/services/firebase_options.dart`
+- **Gestión de estado:** `provider` (ej.: `lib/providers/auth_provider.dart`)
+- **Mapas / Geolocalización:** `google_maps_flutter`, `geolocator`, `geocoding`
+- **Manejo de imágenes:** `image_picker`, `image_picker_for_web`
+- **Otras utilidades:** `shared_preferences`, `intl`, `google_sign_in`
+- **Control de versiones y CI:** Git (repositorio `falz1994/AgroDoctor_App`). Recomendación: añadir GitHub Actions para `flutter analyze` y `flutter test`
+- **Entorno de desarrollo recomendado:** VS Code o Android Studio; Firebase CLI para despliegue; Firebase Emulator Suite para pruebas locales
+
+---
+
+# CAPÍTULO II: INGENIERÍA Y ANÁLISIS ORIENTADO A OBJETOS
+
+## 2.1 Ingeniería de Requerimientos: Definición y Proceso de Obtención de Requerimientos
+
+> **Nota:** Describir técnicas empleadas: entrevistas, observación, cuestionarios. Referenciar actas e instrumentos de recolección en anexos
+
+### Respuesta
+
+- **Fuente de requerimientos:** `README.md`, análisis de código en `lib/`, entrevistas/feedback (implícito), y observaciones sobre el dominio agrícola
+- **Proceso propuesto para obtención y validación:** reuniones con stakeholders (agricultores, técnicos), sesiones de usuario en campo para validar el wizard de diagnóstico, pruebas piloto con dataset de imágenes, y refinamiento iterativo en sprints
+
+---
+
+## 2.2 Requerimientos Funcionales: Lista Detallada de Funcionalidades
+
+> **Nota:** Usar formato: RF-XXX: "El sistema permitirá…". Ser específico, medible y alcanzable. Clasificar por módulos
+
+### Respuesta
+
+- **RF-001:** El sistema permitirá el registro y autenticación de usuarios (correo/contraseña y Google Sign-In). (Implementado en `lib/services/auth_service.dart` y `lib/providers/auth_provider.dart`)
+- **RF-002:** El sistema permitirá capturar y/o subir imágenes para diagnóstico (móvil y web). (Uso de `image_picker` y `image_picker_for_web`)
+- **RF-003:** El sistema realizará análisis de imagen con un modelo de IA y presentará resultados (enfermedad, nivel de confianza, recomendaciones). (Implementación en `lib/services/diagnostico_service.dart` o integración externa)
+- **RF-004:** El sistema creará automáticamente un `CasoDiagnostico` en Firestore tras un diagnóstico exitoso. (Lógica en `lib/services/caso_diagnostico_service.dart`)
+- **RF-005:** El sistema permitirá visualizar la lista de casos del usuario (stream desde `casos_diagnostico`) y el detalle del caso con imágenes, registros y geolocalización
+- **RF-006:** El sistema permitirá gestionar estados del caso (activo, en proceso, cerrado) y registrar actividades (logs)
+- **RF-007:** El sistema permitirá subir y almacenar imágenes en `firebase_storage` con referencias en Firestore
+- **RF-008:** El sistema mostrará los casos en un mapa con Google Maps y geocodificación inversa (dependencias: `google_maps_flutter`, `geolocator`, `geocoding`)
+- **RF-009:** El sistema proveerá un marketplace con listado de productos, búsqueda y detalle (estructura prevista en `lib/screens/productos_page.dart`)
+- **RF-010:** El sistema proveerá un panel de administración para la gestión de usuarios y casos (rutas en `AppRoutes` a `AdminPanelPage`)
+
+---
+
+## 2.3 Requerimientos No Funcionales: Criterios de Calidad, Seguridad, Rendimiento, Usabilidad
+
+> **Nota:** Incluir métricas cuantificables: tiempos de respuesta, disponibilidad, estándares de accesibilidad, etc.
+
+### Respuesta
+
+- **RNF-001 (Seguridad):** Autenticación mediante Firebase Auth; reglas de seguridad en `firestore.rules` con control por UID y validación de campos
+- **RNF-002 (Rendimiento):** Tiempo de respuesta objetivo < 3 s en operaciones de lectura de casos; paginación y uso de índices en Firestore (`firestore.indexes.json`). Subida/descarga de imágenes optimizada (compresión/calidad)
+- **RNF-003 (Disponibilidad/Resiliencia):** Tolerancia a desconexiones con reintentos y cola local de sincronización; recuperación automática al restablecer conexión
+- **RNF-004 (Usabilidad):** Interfaz responsive para móvil y web; flujo guiado en el asistente de diagnóstico con mensajes de estado claros
+- **RNF-005 (Mantenibilidad):** Separación de responsabilidades en `services`, `providers`, `models` y `screens`; cobertura de pruebas mínima recomendada ≥ 60% para servicios críticos
+
+---
+
+## 2.4 Modelo de Casos de Uso: Diagrama y Descripción Detallada de Escenarios Clave
+
+> **Nota:** Incluir diagrama UML. Para cada caso: descripción, actores, precondiciones, flujo básico, flujos alternos y postcondiciones. Priorizar casos críticos
+
+### Respuesta
+
+#### UC-1: Realizar Diagnóstico
+
+- **Actor:** Agricultor/Técnico
+- **Flujo:** Iniciar sesión → Abrir wizard → Capturar/subir imagen → Enviar para análisis → Mostrar resultados → Crear caso automático
+- **Postcondición:** Caso creado en `casos_diagnostico` con referencia al diagnóstico
+
+#### UC-2: Gestionar Caso
+
+- **Actor:** Agricultor/Técnico, Administrador
+- **Flujo:** Ver lista de casos → Abrir detalle → Añadir registro/imagen → Cambiar estado → Guardar
+
+#### UC-3: Consultar Mapa de Casos
+
+- **Actor:** Agricultor/Técnico, Administrador
+- **Flujo:** Acceder a pantalla de mapas → Visualizar marcadores → Filtrar por estado/zona
+
+#### UC-4: Administrar Plataforma
+
+- **Actor:** Administrador
+- **Flujo:** Acceder panel admin → Listar usuarios/casos → Editar o eliminar entradas
+
+---
+
+## 2.5 Análisis del Dominio y Clases: Identificación de Clases y Objetos de Entidad
+
+> **Nota:** Identificar entidades principales, atributos y relaciones entre clases. Evitar detalles técnicos de implementación
+
+### Respuesta
+
+#### Entidades Principales y Atributos
+
+- **Usuario (User):** `uid`, `displayName`, `email`, `photoURL`, `createdAt`, `lastSignIn`
+- **Diagnostico (DiagnosticoModel):** `id`, `userId`, `diseaseName`, `confidence`, `recommendations`, `imageUrl`, `location`, `createdAt`
+- **CasoDiagnostico (CasoDiagnosticoModel):** `id`, `userId`, `nombre`, `diagnostico` (embedded o referencia), `logs[]`, `imageUrls[]`, `estado`, `createdAt`, `updatedAt`
+- **Log:** `contenido`, `usuarioId`, `usuarioNombre`, `fecha`, `imagenUrl`
+
+#### Clases Observadas en Repositorio
+
+- `DiagnosticoModel`
+- `CasoDiagnosticoModel`
+- `AuthService`
+- `CasoDiagnosticoService`
+- `AuthProvider`
+
+---
+
+## 2.6 Diagrama de Clases del Dominio: Modelo que Representa la Lógica del Negocio
+
+> **Nota:** Incluir diagrama UML con clases, atributos, métodos y relaciones del dominio. Especificar multiplicidades
+
+### Respuesta
+
+**Recomendación:** Generar un diagrama UML simple con las clases `Usuario`, `DiagnosticoModel`, `CasoDiagnosticoModel`, `Log` y relaciones:
+
+- 1 Usuario → N Diagnosticos
+- 1 Diagnostico → 1 Caso
+- 1 Caso → N Logs
+
+Se puede extraer información desde `lib/models/` para crear el diagrama en `docs/uml/`.
+
+---
+
+## 2.7 Modelo de Eventos y Mensajes: Diagramas de Interacción (Secuencia o Comunicación)
+
+> **Nota:** Seleccionar 2–3 escenarios críticos. Mostrar interacción entre objetos en secuencia temporal. Incluir diagramas UML de secuencia o comunicación
+
+### Respuesta
+
+#### Eventos Clave
+
+- **Autenticación:** `authStateChanges()` en `AuthService` (ChangeNotifier + Provider)
+- **Creación/actualización de diagnósticos y casos:** Operaciones CRUD en Firestore con `snapshots()` y streams (`CasoDiagnosticoService.getUserCasos`)
+- **Notificaciones:** Notificaciones locales o push (no implementadas explícitamente; posible extensión)
+
+---
+
+## 2.8 Modelo de Datos Relacional: Esquema Lógico de la Base de Datos
+
+> **Nota:** Describir almacenamiento: colecciones/tablas, campos y claves. Incluir modelo DER o relacional con cardinalidades
+
+### Respuesta
+
+#### Colecciones Principales y Documentos
+
+- **`users/{uid}`:**
+  ```json
+  {
+    "uid": "string",
+    "displayName": "string",
+    "email": "string",
+    "photoURL": "string",
+    "createdAt": "timestamp",
+    "lastSignIn": "timestamp"
+  }
+  ```
+
+- **`diagnosticos/{id}`:**
+  ```json
+  {
+    "id": "string",
+    "userId": "string",
+    "diseaseName": "string",
+    "confidence": "number",
+    "recommendations": "string[]",
+    "imageUrl": "string",
+    "location": "GeoPoint",
+    "createdAt": "timestamp"
+  }
+  ```
+
+- **`casos_diagnostico/{id}`:**
+  ```json
+  {
+    "id": "string",
+    "userId": "string",
+    "nombre": "string",
+    "diagnostico": "map",
+    "logs": ["log"],
+    "imageUrls": ["string"],
+    "estado": "string",
+    "createdAt": "timestamp",
+    "updatedAt": "timestamp"
+  }
+  ```
+
+**Notas:** Considerar embebido vs referencias según tamaño del diagnóstico; para consultas por usuario, indexar `userId` y `createdAt`.
+
+---
+
+# CAPÍTULO III: DISEÑO ORIENTADO A OBJETOS Y ARQUITECTURA
+
+## 3.1 Arquitectura del Software: Modelo de Diseño y Patrones Arquitectónicos
+
+> **Nota:** Describir tipo de arquitectura y justificar elección. Incluir diagrama de componentes e interacciones
+
+### Respuesta
+
+**Arquitectura cliente-servidor con Firebase como BaaS.** Capas:
+
+- **Presentación (Flutter UI):** `lib/screens/`, `lib/widgets/`
+- **Lógica de presentación / estado:** `lib/providers/` (Provider + ChangeNotifier)
+- **Servicios / Data Access:** `lib/services/` (AuthService, CasoDiagnosticoService, DiagnosticoService, ImageService, LocationService)
+- **Persistencia:** Firestore y Firebase Storage
+
+---
+
+## 3.2 Diseño de Subsistemas: Módulos, Servicios e Interfaces Principales
+
+> **Nota:** Identificar componentes principales, responsabilidades e interfaces de comunicación entre subsistemas
+
+### Respuesta
+
+#### Subsistemas Principales
+
+- **Autenticación:** `AuthService`, `AuthProvider`
+- **Diagnóstico:** `DiagnosticoService` (encargado de invocar inferencia IA o procesar resultados) y pantallas de wizard
+- **Casos:** `CasoDiagnosticoService` (CRUD y lógica de negocio para casos y logs)
+- **Geolocalización/Mapas:** `LocationService` y componentes de mapa en `screens`
+- **Marketplace:** Pantallas y servicios de productos (`ProductosPage` y servicios asociados si existen)
+
+---
+
+## 3.3 Diseño Detallado de Clases: Responsabilidades, Especificaciones de Tipo, Firmas y Visibilidad
+
+> **Nota:** Detallar clases técnicas: atributos con tipos, métodos con parámetros/retornos, visibilidad y relaciones
+
+### Respuesta
+
+#### `AuthService` (ChangeNotifier)
+
+- **Responsabilidad:** Encapsular FirebaseAuth, GoogleSignIn y sincronizar usuario con Firestore
+- **Métodos:**
+  - `registerWithEmailAndPassword`
+  - `signInWithEmailAndPassword`
+  - `signInWithGoogle`
+  - `signOut`
+  - `_saveUserToFirestore` (privado)
+
+#### `CasoDiagnosticoService` (métodos estáticos)
+
+- **Responsabilidad:** Creación y consulta de casos, añadir logs e imágenes, cambiar estado, eliminar caso
+- **Métodos clave:**
+  - `crearCasoDesdeDiagnostico`
+  - `getUserCasos` (Stream)
+  - `getCaso`
+  - `addLogToCaso`
+  - `addImageToCaso`
+  - `cambiarEstadoCaso`
+  - `actualizarNombreCaso`
+  - `eliminarCaso`
+
+---
+
+## 3.4 Aplicación de Patrones de Diseño: Patrones POSA y PEAA Aplicados
+
+> **Nota:** Listar patrones aplicados, el problema que resuelven y justificación de uso
+
+### Respuesta
+
+- **Patrón Observador:** `ChangeNotifier` + `Provider` para propagación de cambios
+- **Service/Repository:** Separación lógica de acceso a datos en servicios estáticos o instanciables
+- **Factory/Builder:** Uso implícito al crear modelos desde documentos Firestore (`fromFirestore`, `toFirestore`)
+
+---
+
+## 3.5 Control de la Configuración: Sistema de Versiones (GIT)
+
+> **Nota:** Describir flujo de ramas en Git, convenciones de commits, estrategia de merges y etiquetado de versiones
+
+### Respuesta
+
+- **Versionado:** Git. Recomendación: usar convención de ramas (`feature/`, `fix/`, `release/`) y proteger `main` con PRs y CI
+- **Configuración de entorno:** Mantener archivos de configuración de Firebase fuera del repositorio y documentar su colocación según README
+
+---
+
+## 3.6 Bibliotecas y Marcos de Aplicación: Frameworks y Librerías Utilizadas
+
+> **Nota:** Listar tecnologías específicas y justificar su elección según requerimientos. Especificar versiones si aplica
+
+### Respuesta
+
+#### Dependencias Principales (extraídas de `pubspec.yaml`)
+
+- **Firebase:** `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`
+- **Autenticación:** `google_sign_in`
+- **Gestión de estado:** `provider`
+- **Mapas y geolocalización:** `google_maps_flutter`, `geolocator`, `geocoding`
+- **Imágenes:** `image_picker`, `image_picker_for_web`
+- **Utilidades:** `shared_preferences`, `intl`
+
+---
+
+# CAPÍTULO IV: CALIDAD, CIERRE Y ASPECTOS ADICIONALES
+
+## 4.1 Administración de la Calidad: Normas y Estándares Aplicados
+
+> **Nota:** Indicar normas de calidad: ISO/IEC 25010 para calidad de producto, ISO 9001 para procesos, y cómo se implementarán en el proyecto
+
+### Respuesta
+
+- **Linting:** `flutter_lints` incluido en `dev_dependencies`
+- **Recomendaciones:** Aplicar guías de estilo Dart, convenciones de nombres y revisión de PRs
+
+---
+
+## 4.2 Aseguramiento de la Calidad (QA): Estrategias y Plan de Pruebas
+
+> **Nota:** Definir tipos de prueba: unitarias, integración, aceptación/E2E. Incluir herramientas, casos críticos y criterios de aceptación cuantificables
+
+### Respuesta
+
+- **Estado actual:** Hay un test de widget mínimo en `test/widget_test.dart`
+- **Plan de pruebas recomendado:**
+  - **Unit tests:** Para servicios (`AuthService`, `CasoDiagnosticoService`) usando mocks o Firebase Emulator
+  - **Widget tests:** Para pantallas críticas (wizard de diagnóstico, lista de casos, página de resultados)
+  - **Integration tests / E2E:** Flujo completo de diagnóstico → creación de caso → ver detalle
+  - **Pruebas de seguridad:** Validar `firestore.rules` con Firebase Emulator Suite
+  - **Pruebas de rendimiento:** Medir tiempos de subida/descarga de imágenes y latencia de consultas
+
+---
+
+## 4.3 Conclusiones: Recapitulación de Logros y Cumplimiento de Objetivos
+
+> **Nota:** Evalúe si se lograron los objetivos, cómo el sistema resuelve el problema inicial y resuma entregables e impacto
+
+### Respuesta
+
+- El proyecto presenta una arquitectura clara y separación de responsabilidades. Las principales funcionalidades (autenticación, gestión de casos, integración con Firebase y soporte para mapas) están implementadas o esbozadas en el código.
+- **Puntos faltantes o a validar:** Integración completa del modelo IA (si existe), cobertura de pruebas y automatización de CI/CD.
+
+---
+
+## 4.4 Recomendaciones y Trabajo Futuro: Sugerencias para Mejoramiento y Continuidad
+
+> **Nota:** Indicar mejoras priorizadas, propuestas concretas para versiones futuras y cómo superar limitaciones actuales
+
+### Respuesta
+
+#### Prioritarios
+
+1. Añadir pruebas unitarias y de integración (usar Firebase Emulator Suite para no tocar datos de producción)
+2. Configurar CI (GitHub Actions) que ejecute `flutter analyze` y `flutter test` en cada PR
+3. Validar y aplicar índices de Firestore desde `firestore.indexes.json`
+
+#### Mediano Plazo
+
+- Implementar manejo offline básico y colas de sincronización
+- Añadir monitoring y reportes de errores (Sentry o similar)
+- Ampliar el marketplace con datos reales y endpoints backend si se requiere
+
+#### Largo Plazo
+
+- Pipeline de reentrenamiento del modelo IA con datos etiquetados por usuarios y administradores
+- Implementar roles y permisos más granulares (admin, técnico, usuario) con reglas en Firestore
+
+---
+
+# II. SECCIÓN FINAL
+
+## Referencias Bibliográficas
+
+**Contenido:** Fuentes consultadas en formato APA o ISO 690
+
+> **Nota:** Incluir mínimo 5–8 referencias académicas relevantes: libros, artículos de conferencias, normas ISO, documentación técnica. Mantener formato consistente. Evitar fuentes no académicas como blogs personales o Wikipedia
+
+---
+
+## Anexos
+
+**Contenido:** Documentos complementarios (actas de reunión, diagramas detallados, manuales de usuario)
+
+> **Nota:** Organizar anexos con identificadores: Anexo A: Acta de reunión 1, Anexo B: Diagramas UML completos. Incluir únicamente material relevante que respalde el contenido principal y por extensión no quepa en el cuerpo del documento

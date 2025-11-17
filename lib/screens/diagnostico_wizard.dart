@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
+import '../platform/file.dart';
+import 'dart:typed_data';
 import '../constants/app_colors.dart';
 import '../services/location_service.dart';
 import '../services/image_service.dart';
@@ -88,27 +89,51 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
           ),
         ],
       ),
-      body: _isProcessing ? _buildLoadingAnimation() : Stepper(
-        type: StepperType.vertical,
-        currentStep: _currentStep,
-        onStepTapped: (step) => setState(() => _currentStep = step),
-        onStepContinue: () async {
-          debugPrint('onStepContinue llamado, paso actual: $_currentStep');
-          if (_currentStep < 2) {
-            setState(() => _currentStep += 1);
-          } else {
-            debugPrint('Último paso, procesando diagnóstico...');
-            // Enviar diagnóstico
-            await _processDiagnosis();
-            debugPrint('Diagnóstico procesado');
-          }
-        },
-        onStepCancel: () {
-          if (_currentStep > 0) {
-            setState(() => _currentStep -= 1);
-          }
-        },
-        steps: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1100),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+            child: _isProcessing
+                ? _buildLoadingAnimation()
+                : Column(
+                    children: [
+                      // Top progress indicator for a more modern wizard feeling
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                        child: LinearProgressIndicator(
+                          value: (_currentStep + 1) / 3.0,
+                          color: AppColors.primaryColor,
+                          backgroundColor: AppColors.primaryColor.withOpacity(0.12),
+                          minHeight: 6,
+                        ),
+                      ),
+                      Expanded(
+                        child: Stepper(
+                          type: StepperType.horizontal,
+                          currentStep: _currentStep,
+                          onStepTapped: (step) => setState(() => _currentStep = step),
+                          onStepContinue: () async {
+                            debugPrint('onStepContinue llamado, paso actual: $_currentStep');
+                            if (_currentStep < 2) {
+                              if (_canContinue()) {
+                                setState(() => _currentStep += 1);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Completa los datos requeridos antes de continuar'), backgroundColor: Colors.orange));
+                              }
+                            } else {
+                              debugPrint('Último paso, procesando diagnóstico...');
+                              // Enviar diagnóstico
+                              await _processDiagnosis();
+                              debugPrint('Diagnóstico procesado');
+                            }
+                          },
+                          onStepCancel: () {
+                            if (_currentStep > 0) {
+                              setState(() => _currentStep -= 1);
+                            }
+                          },
+                          steps: [
           Step(
             title: const Text("Ubicación y Etapa"),
             content: Column(
@@ -225,11 +250,39 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
                 ),
                 const SizedBox(height: 20),
                 _selectedImage != null
-                    ? Image.file(
-                        _selectedImage!,
-                        height: 200,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                    ? FutureBuilder<Uint8List>(
+                        future: _selectedImage!.readAsBytes(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Container(
+                              height: 200,
+                              width: double.infinity,
+                              color: Colors.grey[300],
+                              child: const Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          if (snapshot.hasError || !snapshot.hasData) {
+                            return Container(
+                              height: 200,
+                              width: double.infinity,
+                              color: Colors.grey[300],
+                              child: const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  size: 48,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            );
+                          }
+
+                          return Image.memory(
+                            snapshot.data!,
+                            height: 200,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          );
+                        },
                       )
                     : Container(
                         height: 200,
@@ -297,11 +350,27 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
                 const SizedBox(height: 10),
                 const Text("Imagen:", style: TextStyle(fontWeight: FontWeight.bold)),
                 _selectedImage != null
-                    ? Image.file(
-                        _selectedImage!,
-                        height: 100,
-                        width: 100,
-                        fit: BoxFit.cover,
+                    ? FutureBuilder<Uint8List>(
+                        future: _selectedImage!.readAsBytes(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Container(
+                              height: 100,
+                              width: 100,
+                              color: Colors.grey[300],
+                              child: const Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))),
+                            );
+                          }
+                          if (snapshot.hasError || !snapshot.hasData) {
+                            return const Text("No se puede mostrar la imagen");
+                          }
+                          return Image.memory(
+                            snapshot.data!,
+                            height: 100,
+                            width: 100,
+                            fit: BoxFit.cover,
+                          );
+                        },
                       )
                     : const Text("No se ha seleccionado imagen"),
               ],
@@ -309,40 +378,60 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
             isActive: _currentStep >= 2,
           ),
         ],
-        controlsBuilder: (context, details) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: Row(
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    if (_currentStep < 2) {
-                      // Si no es el último paso, usar el comportamiento normal
-                      details.onStepContinue?.call();
-                    } else {
-                      // Si es el último paso, procesar el diagnóstico directamente
-                      debugPrint('Botón Finalizar presionado, procesando diagnóstico...');
-                      _processDiagnosis();
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
+                    controlsBuilder: (context, details) {
+                      final canContinue = _canContinue();
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: canContinue
+                                  ? () {
+                                      if (_currentStep < 2) {
+                                        details.onStepContinue?.call();
+                                      } else {
+                                        _processDiagnosis();
+                                      }
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: Text(_currentStep < 2 ? "Siguiente" : "Finalizar"),
+                            ),
+                            const SizedBox(width: 10),
+                            if (_currentStep > 0)
+                              TextButton(
+                                onPressed: details.onStepCancel,
+                                child: const Text("Atrás"),
+                              ),
+                            const Spacer(),
+                            // Quick step indicator
+                            Text('Paso ${_currentStep + 1} de 3', style: const TextStyle(color: Colors.black54)),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  child: Text(_currentStep < 2 ? "Siguiente" : "Finalizar"),
                 ),
-                const SizedBox(width: 10),
-                if (_currentStep > 0)
-                  TextButton(
-                    onPressed: details.onStepCancel,
-                    child: const Text("Atrás"),
-                  ),
               ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
+  }
+
+  bool _canContinue() {
+    // Validaciones mínimas por paso
+    if (_currentStep == 0) {
+      return _currentPosition != null && _selectedCropStage != null;
+    }
+    if (_currentStep == 1) {
+      return _selectedImage != null;
+    }
+    return true;
   }
   
   Future<void> _getImage() async {
@@ -568,7 +657,7 @@ class _DiagnosticoWizardState extends State<DiagnosticoWizard> with SingleTicker
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
-              children: [
+            children: [
                 Icon(Icons.eco, color: AppColors.primaryColor, size: 32),
                 const SizedBox(width: 12),
                 const Expanded(

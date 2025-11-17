@@ -1,0 +1,48 @@
+Task ID,Task Name,Start Date,End Date,Duration,Duration Unit,Predecessor,Progress,Resources,Color,Info
+1,FASE 0: Recopilación de Requerimientos,2025-08-18,2025-09-12,18,day,,0,"Business Analyst, Product Owner, Dev Team",401,Análisis y documentación de todos los requerimientos del proyecto
+2,Análisis de Stakeholders y Usuarios,2025-08-18,2025-08-22,3,day,,0,Business Analyst,401,Identificar usuarios objetivo (agricultores, técnicos, administradores), definir perfiles de usuario, entender necesidades de cada perfil
+3,Requerimientos Funcionales: Diagnóstico,2025-08-18,2025-08-25,5,day,,0,"Business Analyst, Product Owner",401,Flujo de diagnóstico, captura de imágenes, etapas de cultivo, síntomas, resultados esperados, precisión mínima del modelo IA
+4,Requerimientos Funcionales: Casos y Seguimiento,2025-08-20,2025-08-26,5,day,,0,Business Analyst,401,Gestión de casos, estados, logs, actualizaciones, seguimiento temporal, historial completo
+5,Requerimientos Funcionales: Marketplace,2025-08-21,2025-08-27,5,day,,0,Business Analyst,401,Categorías de productos, búsqueda, filtros, información de contacto, disponibilidad, precios
+6,Requerimientos Funcionales: Reportes y Mapas,2025-08-22,2025-08-28,5,day,,0,Business Analyst,401,Visualización geográfica, datos por departamento/municipio, producción, precios, integración con mapas
+7,Requerimientos de IA y Modelos,2025-08-25,2025-08-29,3,day,3FS,0,"Business Analyst, Backend Dev",401,Modelos TensorFlow requeridos, precisión mínima, enfermedades soportadas, tiempos de respuesta, formato de respuesta
+8,Requerimientos de Integración,2025-08-26,2025-08-30,3,day,,0,Dev Team,401,Firebase (Auth, Firestore, Storage), Google Maps API, APIs externas para datos de reportes, servicios de geolocalización
+9,Requerimientos No Funcionales,2025-08-27,2025-09-02,4,day,,0,"Business Analyst, Dev Team",401,Rendimiento (tiempo de respuesta), seguridad, escalabilidad, disponibilidad, usabilidad, accesibilidad
+10,Requerimientos de UI/UX,2025-08-28,2025-09-03,4,day,,0,"Business Analyst, Product Owner",401,Diseño responsive, patrones de navegación, accesibilidad, experiencia de usuario, guías de estilo
+11,Requerimientos Técnicos,2025-08-29,2025-09-04,4,day,,0,"Dev Team, Backend Dev",401,Plataformas objetivo (Android, iOS, Web), versiones mínimas, tecnologías, arquitectura, infraestructura
+12,Documentación de Requerimientos,2025-09-01,2025-09-08,5,day,"3FS,4FS,5FS,6FS,7FS,9FS",0,Business Analyst,401,Crear documento de requerimientos funcionales y no funcionales, casos de uso, diagramas
+13,Validación con Stakeholders,2025-09-09,2025-09-12,3,day,12FS,0,"Product Owner, Business Analyst",401,Revisión con stakeholders, ajustes según feedback, aprobación final de requerimientos
+14,FASE 1: Infraestructura y Autenticación,2025-09-15,2025-10-03,15,day,1FS,100,Dev Team,121,Fase completada al 100%
+15,Sistema de Autenticación,2025-09-15,2025-09-19,5,day,,100,Dev Team,121,Login, registro, Google Sign-In, gestión de sesiones
+16,Configuración Firebase,2025-09-15,2025-09-17,3,day,,100,Dev Team,121,Firebase Auth, Firestore, Storage configurados
+17,Infraestructura Base,2025-09-18,2025-10-03,10,day,16FS,100,Dev Team,121,Rutas, navegación, tema, modelos de datos base
+27,FASE 2: Funcionalidades Core,2025-10-06,2025-10-31,20,day,14FS,85,Dev Team,211,Fase en progreso al 85%
+28,Pantalla Principal (Landing Page),2025-10-06,2025-10-10,5,day,,100,Dev Team,121,Diseño responsive, widgets de noticias y clima
+29,Sistema de Diagnóstico (UI/UX),2025-10-06,2025-10-20,10,day,,95,Dev Team,211,Wizard paso a paso, captura de imágenes, ubicación GPS
+30,Gestión de Casos de Diagnóstico,2025-10-21,2025-10-27,5,day,29FS,100,Dev Team,121,Creación, visualización y gestión de casos
+31,Sistema de Mapas y Geolocalización,2025-10-13,2025-10-29,11,day,28FS,100,Dev Team,121,Mapa de Nicaragua con GeoJSON, Google Maps integrado
+32,Marketplace de Productos,2025-10-21,2025-10-27,5,day,,70,Dev Team,301,UI completa, pendiente integración con Firestore
+33,Sistema de Reportes,2025-10-21,2025-10-27,5,day,31FS,70,Dev Team,301,UI completa con datos mockup, pendiente datos reales
+34,Perfil de Usuario,2025-10-30,2025-10-31,2,day,,100,Dev Team,121,Vista de perfil e historial de diagnósticos
+35,Panel de Administración,2025-10-30,2025-11-05,5,day,,100,Dev Team,121,Gestión de usuarios y casos del sistema
+36,FASE 3: Integración de IA y Backend,2025-11-06,2025-12-03,20,day,27FS,0,"Backend Dev, Dev Team",401,Integración del modelo de IA con la aplicación Flutter
+37,Configurar Servidor Backend,2025-11-06,2025-11-10,3,day,,0,Backend Dev,401,Flask/FastAPI, entorno Python, configuración servidor
+38,Integrar Modelo TensorFlow,2025-11-08,2025-11-14,5,day,,0,Backend Dev,401,Usar diagnostico_completado.py, endpoint de diagnóstico
+39,Crear API REST,2025-11-17,2025-11-21,3,day,38FS,0,Backend Dev,401,Endpoint POST /api/diagnose, validación, manejo de errores
+40,Testing Backend,2025-11-24,2025-11-28,3,day,39FS,0,Backend Dev,401,Tests unitarios, integración, optimización de respuesta
+41,Modificar Flutter Service,2025-12-01,2025-12-04,3,day,40FS,0,Dev Team,401,Modificar diagnostico_service.dart para llamar API real
+42,Optimización de Imágenes,2025-12-01,2025-12-05,5,day,40FS,0,Dev Team,401,Compresión, progreso de carga, cache de resultados
+43,Testing End-to-End,2025-12-08,2025-12-11,3,day,"41FS,42FS",0,Dev Team,401,Pruebas con imágenes reales, validación de resultados
+44,Despliegue Backend,2025-12-12,2025-12-13,2,day,43FS,0,Backend Dev,401,Desplegar en Cloud Run/Lambda, configurar dominio y SSL
+45,FASE 4: Optimización y Despliegue,2025-12-16,2026-01-08,15,day,36FS,0,"Dev Team, QA Team",401,Optimizaciones finales, testing y despliegue
+46,Integración Productos Firestore,2025-12-16,2025-12-18,2,day,,0,Dev Team,401,Migrar productos hardcodeados a Firestore
+47,Integración Datos Reales Reportes,2025-12-16,2025-12-23,5,day,,0,Dev Team,401,Conectar con fuente de datos real para reportes
+48,Optimizaciones de Rendimiento,2025-12-19,2025-12-23,3,day,46FS,0,Dev Team,401,Paginación, cache, lazy loading, optimización queries
+49,Testing Unitario,2025-12-22,2025-12-26,3,day,,0,QA Team,401,Tests para servicios, widgets y pantallas principales
+50,Testing de Integración,2025-12-29,2026-01-03,4,day,49FS,0,QA Team,401,Tests de flujos completos end-to-end
+51,Configurar CI/CD,2025-12-29,2026-01-02,2,day,,0,Dev Team,401,GitHub Actions para testing y despliegue automático
+52,Optimización Multi-plataforma,2026-01-06,2026-01-10,3,day,50FS,0,QA Team,401,Pruebas exhaustivas Android, iOS y Web
+53,Builds de Producción,2026-01-09,2026-01-13,3,day,52FS,0,Dev Team,401,Build APK/AAB, iOS, desplegar web en Firebase
+54,Documentación Final,2026-01-14,2026-01-15,1,day,53FS,0,Dev Team,401,Documentación técnica, API, diagramas de flujo
+55,Milestone: Entrega Final,2026-01-16,2026-01-16,0,day,54FS,0,Dev Team,,Proyecto completado y listo para producción
+
